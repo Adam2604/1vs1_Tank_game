@@ -7,9 +7,15 @@ pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 60)
+sky = pygame.transform.scale(pygame.image.load("materialy_graficzne/background1.png"), (1280, 1280))
+cloud1 = pygame.image.load("materialy_graficzne/cloud1.png")
+cloud2 = pygame.image.load("materialy_graficzne/cloud2.png")
+cloud3 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud8.png"), (450, 225))
+cloud4 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud4.png"), (400, 200))
+cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.png"), (200, 100))
 
 def get_font(size):
-    return pygame.font.Font("font.ttf", size)
+    return pygame.font.Font("materialy_graficzne/font.ttf", size)
 
 def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, True, color)
@@ -27,7 +33,7 @@ def main_menu():
         screen.blit(menu_text, menu_rect)
 
         play_button = Button(
-            image=pygame.image.load("Play Rect.png"),
+            image=pygame.image.load("materialy_graficzne/Play Rect.png"),
             position=(640, 300),
             label="PLAY",
             font=get_font(75),
@@ -36,7 +42,7 @@ def main_menu():
         )
 
         quit_button = Button(
-            image=pygame.image.load("Quit Rect.png"),
+            image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
             position=(640, 500),
             label="QUIT",
             font=get_font(75),
@@ -64,8 +70,8 @@ def main_menu():
 
 
 # Parametry terenu - funkcje wzięte z dokumentacji, dobrane samemu
-terrain_width = 800
-terrain_height = 600
+terrain_width = 1280
+terrain_height = 720
 step = 2
 scale = 100.0
 octaves = 4
@@ -76,7 +82,7 @@ base = 0
 def generate_terrain():
     points = []
     for x in range(0, terrain_width, step):
-        y = pnoise1(x / 100.0) * 100 + 400
+        y = pnoise1(x / 100.0) * 100 + 500
         points.append((x, y))
     return points
 
@@ -90,7 +96,12 @@ terrain_points = generate_terrain()
 
 def game_loop():
     while True:
-        screen.fill((135, 206, 235))  # niebo
+        screen.blit(sky, (0,0))  # niebo
+        screen.blit(cloud1, (1000, 50))
+        screen.blit(cloud2, (500, 200))
+        screen.blit(cloud5, (1, 5))
+        screen.blit(cloud4, (125, 175))
+        screen.blit(cloud3, (800, 190))
         draw_terrain(terrain_points)
 
         for event in pygame.event.get():
