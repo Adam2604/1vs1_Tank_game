@@ -1,10 +1,67 @@
 import pygame
 import sys
 from noise import pnoise1
+from button import Button
 
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
+font = pygame.font.SysFont(None, 60)
+
+def get_font(size):
+    return pygame.font.Font("font.ttf", size)
+
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, True, color)
+    rect = textobj.get_rect(center=(x, y))
+    surface.blit(textobj, rect)
+
+def main_menu():
+    pygame.display.set_caption("MENU")
+    while True:
+        screen.fill((30, 30, 30))
+        menu_mouse_pos = pygame.mouse.get_pos()
+
+        menu_text = get_font(100).render("Menu główne", True, "#b68f40")
+        menu_rect = menu_text.get_rect(center=(640, 100))
+        screen.blit(menu_text, menu_rect)
+
+        play_button = Button(
+            image=pygame.image.load("Play Rect.png"),
+            position=(640, 300),
+            label="PLAY",
+            font=get_font(75),
+            normal_color="#d7fcd4",
+            hover_color="White"
+        )
+
+        quit_button = Button(
+            image=pygame.image.load("Quit Rect.png"),
+            position=(640, 500),
+            label="QUIT",
+            font=get_font(75),
+            normal_color="#d7fcd4",
+            hover_color="White"
+        )
+
+        for button in [play_button, quit_button]:
+            button.update_color(menu_mouse_pos)
+            button.draw(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if play_button.is_clicked(menu_mouse_pos):
+                    game_loop()
+                if quit_button.is_clicked(menu_mouse_pos):
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.update()
+
+
 
 # Parametry terenu - funkcje wzięte z dokumentacji, dobrane samemu
 terrain_width = 800
@@ -31,14 +88,17 @@ def draw_terrain(points):
 
 terrain_points = generate_terrain()
 
-while True:
-    screen.fill((135, 206, 235))  # niebo
-    draw_terrain(terrain_points)
+def game_loop():
+    while True:
+        screen.fill((135, 206, 235))  # niebo
+        draw_terrain(terrain_points)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-    pygame.display.update()
-    clock.tick(60)
+        pygame.display.update()
+        clock.tick(60)
+
+main_menu()
