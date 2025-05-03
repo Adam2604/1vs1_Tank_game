@@ -4,7 +4,9 @@ from noise import pnoise1
 from button import Button
 
 pygame.init()
-screen = pygame.display.set_mode((1280, 720))
+screen_height = 720
+screen_width = 1280
+screen = pygame.display.set_mode((screen_width, screen_height))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 60)
 sky = pygame.transform.scale(pygame.image.load("materialy_graficzne/background1.png"), (1280, 1280))
@@ -70,27 +72,36 @@ def main_menu():
 
 
 # Parametry terenu - funkcje wzięte z dokumentacji, dobrane samemu
-terrain_width = 1280
+terrain_width = 1281
 terrain_height = 720
-step = 2
+step = 1
 scale = 100.0
 octaves = 4
-persistence = 0.5
+persistence = 0.1
 lacunarity = 2.0
 base = 0
 
 def generate_terrain():
     points = []
     for x in range(0, terrain_width, step):
-        y = pnoise1(x / 100.0) * 100 + 500
-        points.append((x, y))
+        y = pnoise1(x / 150.0) * 80 + 500
+        points.append((x, int(y)))
+
+    points.append((terrain_width, screen_height))
+    points.append((0, screen_height))
     return points
 
-def draw_terrain(points):
-    polygon = points.copy()
-    polygon.append((terrain_width, terrain_height))
-    polygon.append((0, terrain_height))
-    pygame.draw.polygon(screen, (34, 139, 34), polygon)
+def draw_terrain(screen):
+    points = generate_terrain()
+    points.append((terrain_width, screen_height))  # domykanie od prawej
+    points.append((0, screen_height))              # domykanie od lewej
+    pygame.draw.polygon(screen, (18 ,182 ,83), points)  # kolor ziemi
+
+    for i in range(len(points) - 5):
+        x1, y1 = points[i]
+        x2, y2 = points[i + 1]
+        pygame.draw.line(screen, (100, 200, 100), (x1, y1), (x2, y2), 10)
+
 
 terrain_points = generate_terrain()
 
@@ -102,7 +113,7 @@ def game_loop():
         screen.blit(cloud5, (1, 5))
         screen.blit(cloud4, (125, 175))
         screen.blit(cloud3, (800, 190))
-        draw_terrain(terrain_points)
+        draw_terrain(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
