@@ -74,7 +74,14 @@ class Tank:
             self.on_ground = False
             self.velocity_y += self.gravity
 
+    def move(self, direction, terrain_surface, terrain_points):
+        new_x = self.x + (direction * self.speed)
 
+        if 0 <= new_x <= 1280 - self.total_width:
+            old_x = self.x
+            self.x = new_x
+            if self.check_collision_with_terrain(terrain_surface):
+                self.x = old_x
 
     def draw(self, screen):
         screen.blit(self.surface, (self.x, self.y))

@@ -2,6 +2,7 @@ import pygame
 import sys
 from noise import pnoise1
 from button import Button
+from tanks import Tank
 
 pygame.init()
 screen_height = 720
@@ -15,6 +16,7 @@ cloud2 = pygame.image.load("materialy_graficzne/cloud2.png")
 cloud3 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud8.png"), (450, 225))
 cloud4 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud4.png"), (400, 200))
 cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.png"), (200, 100))
+tank1 = Tank("Desert")
 
 def get_font(size):
     return pygame.font.Font("materialy_graficzne/font.ttf", size)
@@ -25,7 +27,7 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(textobj, rect)
 
 def main_menu():
-    pygame.display.set_caption("MENU")
+    pygame.display.set_caption("TANKS")
     while True:
         screen.fill((30, 30, 30))
         menu_mouse_pos = pygame.mouse.get_pos()
@@ -106,14 +108,40 @@ def draw_terrain(screen):
 terrain_points = generate_terrain()
 
 def game_loop():
+    terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+
+    starting_x = 100
+    terrain_y = 0
+    for i in range(len(terrain_points) - 1):
+        x1, y1 = terrain_points[i]
+        if x1 <= starting_x <= terrain_points[i + 1][0]:
+            terrain_y= y1
+            break
+
+    tank1.set_position(starting_x, terrain_y - tank1.total_height)
+
     while True:
-        screen.blit(sky, (0,0))  # niebo
+        terrain_surface.fill((0, 0, 0, 0))
+
+        screen.blit(sky, (0,0))
         screen.blit(cloud1, (1000, 50))
         screen.blit(cloud2, (500, 200))
         screen.blit(cloud5, (1, 5))
         screen.blit(cloud4, (125, 175))
         screen.blit(cloud3, (800, 190))
+
+        draw_terrain(terrain_surface)
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:
+            tank1.move(-1, terrain_surface, terrain_points)
+        if keys[pygame.K_d]:
+            tank1.move(1, terrain_surface, terrain_points)
+
+        tank1.apply_gravity(terrain_surface, terrain_points)
+
         draw_terrain(screen)
+        tank1.draw(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
