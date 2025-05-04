@@ -19,7 +19,7 @@ class Tank:
         self.tracks_rect = self.tracks.get_rect()
         self.turret_rect = self.turret.get_rect()
 
-        self.total_width = max(self.body_rect.width, self.tracks_rect.width, self.turret_rect.width) + 60
+        self.total_width = max(self.body_rect.width, self.tracks_rect.width, self.turret_rect.width)
         self.total_height = self.body_rect.height + self.tracks_rect.height + self.turret_rect.height + 100
 
         self.surface = pygame.Surface((self.total_width, self.total_height), pygame.SRCALPHA)
@@ -38,8 +38,43 @@ class Tank:
         self.surface.blit(self.turret, (turret_x, turret_y))
         self.surface.blit(self.body, (body_x, body_y))
 
+        self.mask = pygame.mask.from_surface(self.surface)
+
         self.x = 0
         self.y = 0
+
+        self.total_height = self.total_height
+        self.total_width = self.total_width
+
+        self.velocity_y = 0
+        self.velocity_x = 0
+        self.gravity = 0.5
+        self.speed = 2
+        self.on_ground = False
+
+    def check_collision_with_terrain(self, terrain_surface): #Cała klasa napisana samemu
+        terrain_mask = pygame.mask.from_surface(terrain_surface)
+
+        offset = (int(self.x), int(self.y))
+        overlap = terrain_mask.overlap(self.mask, offset)
+        return overlap is not None
+
+    def apply_gravity(self, terrain_surface, terrain_points): #Klasa napisana samemu
+        test_y = self.y + self.velocity_y
+
+        old_y = self.y
+        self.y = test_y
+
+        if self.check_collision_with_terrain(terrain_surface):
+            while self.check_collision_with_terrain(terrain_surface):
+                self.y -= 1
+            self.velocity_y = 0
+            self.on_ground = True
+        else:
+            self.on_ground = False
+            self.velocity_y += self.gravity
+
+
 
     def draw(self, screen):
         screen.blit(self.surface, (self.x, self.y))
