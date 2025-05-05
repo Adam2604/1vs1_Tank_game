@@ -5,14 +5,22 @@ class Tank:
         # Ścieżka do zasobów
         base_path = "czolgi/PNG/default size/"
 
-        if body_type == "Desert":
+        if body_type == "Desert1":
             self.body = pygame.image.load(f"{base_path}tanks_tankDesert_body1.png").convert_alpha()
             self.tracks = pygame.image.load(f"{base_path}tanks_tankTracks1.png").convert_alpha()
             self.turret = pygame.image.load(f"{base_path}tanks_turret1.png").convert_alpha()
-        else:
+        elif body_type == "Navy1":
+            self.body = pygame.image.load(f"{base_path}tanks_tankNavy_body3.png").convert_alpha()
+            self.tracks = pygame.image.load(f"{base_path}tanks_tankTracks3.png").convert_alpha()
+            self.turret = pygame.image.load(f"{base_path}tanks_turret2.png").convert_alpha()
+        elif body_type == "Green1":
             self.body = pygame.image.load(f"{base_path}tanks_tankGreen_body1.png").convert_alpha()
             self.tracks = pygame.image.load(f"{base_path}tanks_tankTracks1.png").convert_alpha()
             self.turret = pygame.image.load(f"{base_path}tanks_turret1.png").convert_alpha()
+        elif body_type == "Grey1":
+            self.body = pygame.image.load(f"{base_path}tanks_tankGrey_body2.png").convert_alpha()
+            self.tracks = pygame.image.load(f"{base_path}tanks_tankTracks2.png").convert_alpha()
+            self.turret = pygame.image.load(f"{base_path}tanks_turret3.png").convert_alpha()
 
         # Pobieranie wymiarów wszystkich części
         self.body_rect = self.body.get_rect()
