@@ -97,7 +97,7 @@ def pause_menu():
         screen.blit(menu_text, menu_rect)
 
         resume_button = Button(
-            image=pygame.image.load("materialy_graficzne/Play Rect.png"),
+            image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Play Rect.png"), (500, 120)),
             position=(640, 300),
             label="RESUME",
             font=get_font(75),
