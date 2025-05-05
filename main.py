@@ -7,16 +7,20 @@ from tanks import Tank
 pygame.init()
 screen_height = 720
 screen_width = 1280
-screen = pygame.display.set_mode((screen_width, screen_height))
+window_size = (screen_width, screen_height)
+is_fullscreen = False
+screen = pygame.display.set_mode(window_size)
 clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 60)
+
+#grafiki nieba oraz chmur zostały pobrane ze strony https://szadiart.itch.io/background-desert-mountains
 sky = pygame.transform.scale(pygame.image.load("materialy_graficzne/background1.png"), (1280, 1280))
 cloud1 = pygame.image.load("materialy_graficzne/cloud1.png")
 cloud2 = pygame.image.load("materialy_graficzne/cloud2.png")
 cloud3 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud8.png"), (450, 225))
 cloud4 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud4.png"), (400, 200))
 cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.png"), (200, 100))
-tank1 = Tank("Desert")
+tank1 = Tank("Desert1")
 
 def get_font(size):
     return pygame.font.Font("materialy_graficzne/font.ttf", size)
@@ -25,6 +29,14 @@ def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, True, color)
     rect = textobj.get_rect(center=(x, y))
     surface.blit(textobj, rect)
+
+def fullscreen():
+    global screen, is_fullscreen
+    is_fullscreen = not is_fullscreen
+    if is_fullscreen:
+        screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode(window_size)
 
 def main_menu():
     pygame.display.set_caption("TANKS")
@@ -62,6 +74,9 @@ def main_menu():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    fullscreen()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if play_button.is_clicked(menu_mouse_pos):
                     game_loop()
@@ -71,7 +86,57 @@ def main_menu():
 
         pygame.display.update()
 
+def pause_menu():
+    pygame.display.set_caption("TANKS - PAUZA")
+    while True:
+        screen.fill((30, 30, 30))
+        menu_mouse_pos = pygame.mouse.get_pos()
 
+        menu_text = get_font(100).render("PAUZA", True, "#b68f40")
+        menu_rect = menu_text.get_rect(center=(640, 100))
+        screen.blit(menu_text, menu_rect)
+
+        resume_button = Button(
+            image=pygame.image.load("materialy_graficzne/Play Rect.png"),
+            position=(640, 300),
+            label="RESUME",
+            font=get_font(75),
+            normal_color="#d7fcd4",
+            hover_color="White"
+        )
+
+        quit_button = Button(
+            image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
+            position=(640, 500),
+            label="QUIT",
+            font=get_font(75),
+            normal_color="#d7fcd4",
+            hover_color="White"
+        )
+
+        resume_button.update_color(menu_mouse_pos)
+        resume_button.draw(screen)
+        quit_button.update_color(menu_mouse_pos)
+        quit_button.draw(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    fullscreen()
+                if event.key == pygame.K_ESCAPE:
+                    return  # Powrót do gry
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if quit_button.is_clicked(menu_mouse_pos):
+                    pygame.quit()
+                    sys.exit()
+                if resume_button.is_clicked(menu_mouse_pos):
+                    return
+
+        pygame.display.update()
+    
 
 # Parametry terenu - funkcje wzięte z dokumentacji, dobrane samemu
 terrain_width = 1281
@@ -147,6 +212,11 @@ def game_loop():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.K_F11:
+                fullscreen()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause_menu()
 
         pygame.display.update()
         clock.tick(60)
