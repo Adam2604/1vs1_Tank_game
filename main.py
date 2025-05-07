@@ -5,8 +5,8 @@ from button import Button
 from tanks import Tank
 
 pygame.init()
-screen_height = 720
-screen_width = 1280
+screen_height = 864
+screen_width = 1546
 window_size = (screen_width, screen_height)
 is_fullscreen = False
 screen = pygame.display.set_mode(window_size)
@@ -14,7 +14,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 60)
 
 #grafiki nieba oraz chmur zostały pobrane ze strony https://szadiart.itch.io/background-desert-mountains
-sky = pygame.transform.scale(pygame.image.load("materialy_graficzne/background1.png"), (1280, 1280))
+sky = pygame.transform.scale(pygame.image.load("materialy_graficzne/background1.png"), (1536, 1536))
 cloud1 = pygame.image.load("materialy_graficzne/cloud1.png")
 cloud2 = pygame.image.load("materialy_graficzne/cloud2.png")
 cloud3 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud8.png"), (450, 225))
@@ -44,13 +44,13 @@ def main_menu():
         screen.fill((30, 30, 30))
         menu_mouse_pos = pygame.mouse.get_pos()
 
-        menu_text = get_font(100).render("Menu główne", True, "#b68f40")
-        menu_rect = menu_text.get_rect(center=(640, 100))
+        menu_text = get_font(100).render("Main Menu", True, "#b68f40")
+        menu_rect = menu_text.get_rect(center=(768, 150))
         screen.blit(menu_text, menu_rect)
 
         play_button = Button(
             image=pygame.image.load("materialy_graficzne/Play Rect.png"),
-            position=(640, 300),
+            position=(768, 350),
             label="PLAY",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -59,7 +59,7 @@ def main_menu():
 
         quit_button = Button(
             image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
-            position=(640, 500),
+            position=(768, 550),
             label="QUIT",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -87,18 +87,18 @@ def main_menu():
         pygame.display.update()
 
 def pause_menu():
-    pygame.display.set_caption("TANKS - PAUZA")
+    pygame.display.set_caption("TANKS - PAUSE")
     while True:
         screen.fill((30, 30, 30))
         menu_mouse_pos = pygame.mouse.get_pos()
 
-        menu_text = get_font(100).render("PAUZA", True, "#b68f40")
-        menu_rect = menu_text.get_rect(center=(640, 100))
+        menu_text = get_font(100).render("PAUSE", True, "#b68f40")
+        menu_rect = menu_text.get_rect(center=(768, 150))  # Zmienione z 960 na 768
         screen.blit(menu_text, menu_rect)
 
         resume_button = Button(
             image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Play Rect.png"), (500, 120)),
-            position=(640, 300),
+            position=(768, 350),  # Zmienione z 960 na 768 i z 450 na 350
             label="RESUME",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -107,7 +107,7 @@ def pause_menu():
 
         quit_button = Button(
             image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
-            position=(640, 500),
+            position=(768, 550),  # Zmienione z 960 na 768 i z 650 na 550
             label="QUIT",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -139,7 +139,7 @@ def pause_menu():
     
 
 # Parametry terenu - funkcje wzięte z dokumentacji, dobrane samemu
-terrain_width = 1281
+terrain_width = 1537
 terrain_height = 720
 step = 1
 scale = 100.0
@@ -189,11 +189,12 @@ def game_loop():
         terrain_surface.fill((0, 0, 0, 0))
 
         screen.blit(sky, (0,0))
-        screen.blit(cloud1, (1000, 50))
-        screen.blit(cloud2, (500, 200))
-        screen.blit(cloud5, (1, 5))
-        screen.blit(cloud4, (125, 175))
-        screen.blit(cloud3, (800, 190))
+        # Aktualizacja pozycji chmur
+        screen.blit(cloud1, (1200, 50))
+        screen.blit(cloud2, (600, 200))
+        screen.blit(cloud5, (50, 50))
+        screen.blit(cloud4, (250, 175))
+        screen.blit(cloud3, (900, 190))
 
         draw_terrain(terrain_surface)
 
