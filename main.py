@@ -20,7 +20,9 @@ cloud2 = pygame.image.load("materialy_graficzne/cloud2.png")
 cloud3 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud8.png"), (450, 225))
 cloud4 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud4.png"), (400, 200))
 cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.png"), (200, 100))
+# Na początku pliku, gdzie definiujemy tank1, dodajmy tank2
 tank1 = Tank("Desert1")
+tank2 = Tank("Navy1", True)  # True oznacza, że czołg ma być odwrócony
 
 
 def get_font(size):
@@ -187,24 +189,35 @@ def draw_terrain(screen, map_type="hilly"):
 terrain_points = generate_terrain()
 
 
+# W funkcji game_loop() dodajmy inicjalizację pozycji drugiego czołgu:
 def game_loop(map_type="hilly"):
     global terrain_points
     terrain_points = generate_terrain(map_type)
     terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
-    starting_x = 100
-    terrain_y = 0
+    # Pozycja pierwszego czołgu (bez zmian)
+    starting_x1 = 100
+    terrain_y1 = 0
     for i in range(len(terrain_points) - 1):
         x1, y1 = terrain_points[i]
-        if x1 <= starting_x <= terrain_points[i + 1][0]:
-            terrain_y = y1
+        if x1 <= starting_x1 <= terrain_points[i + 1][0]:
+            terrain_y1 = y1
             break
 
-    tank1.set_position(starting_x, terrain_y - tank1.total_height)
+    # Pozycja drugiego czołgu
+    starting_x2 = terrain_width - 200  # Pozycja z prawej strony
+    terrain_y2 = 0
+    for i in range(len(terrain_points) - 1):
+        x1, y1 = terrain_points[i]
+        if x1 <= starting_x2 <= terrain_points[i + 1][0]:
+            terrain_y2 = y1
+            break
+
+    tank1.set_position(starting_x1, terrain_y1 - tank1.total_height)
+    tank2.set_position(starting_x2, terrain_y2 - tank2.total_height)
 
     while True:
         terrain_surface.fill((0, 0, 0, 0))
-
         screen.blit(sky, (0, 0))
         # Aktualizacja pozycji chmur
         screen.blit(cloud1, (1200, 50))
@@ -215,16 +228,27 @@ def game_loop(map_type="hilly"):
 
         draw_terrain(terrain_surface, map_type)
 
+        # Kontrola pierwszego czołgu (WASD)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             tank1.move(-1, terrain_surface, terrain_points)
         if keys[pygame.K_d]:
             tank1.move(1, terrain_surface, terrain_points)
 
-        tank1.apply_gravity(terrain_surface, terrain_points)
+        # Kontrola drugiego czołgu (strzałki)
+        if keys[pygame.K_LEFT]:
+            tank2.move(-1, terrain_surface, terrain_points)
+        if keys[pygame.K_RIGHT]:
+            tank2.move(1, terrain_surface, terrain_points)
 
+        # Aktualizacja fizyki dla obu czołgów
+        tank1.apply_gravity(terrain_surface, terrain_points)
+        tank2.apply_gravity(terrain_surface, terrain_points)
+
+        # Rysowanie terenu i czołgów
         draw_terrain(screen, map_type)
         tank1.draw(screen)
+        tank2.draw(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

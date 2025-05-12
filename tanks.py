@@ -1,7 +1,7 @@
 import pygame
 
 class Tank:
-    def __init__(self, body_type):
+    def __init__(self, body_type, flipped=False):
         # Ścieżka do zasobów
         base_path = "czolgi/PNG/default size/"
 
@@ -22,7 +22,6 @@ class Tank:
             self.tracks = pygame.image.load(f"{base_path}tanks_tankTracks2.png").convert_alpha()
             self.turret = pygame.image.load(f"{base_path}tanks_turret3.png").convert_alpha()
 
-        # Pobieranie wymiarów wszystkich części
         self.body_rect = self.body.get_rect()
         self.tracks_rect = self.tracks.get_rect()
         self.turret_rect = self.turret.get_rect()
@@ -31,16 +30,25 @@ class Tank:
         self.total_height = self.body_rect.height + self.tracks_rect.height + self.turret_rect.height + 100
 
         self.surface = pygame.Surface((self.total_width, self.total_height), pygame.SRCALPHA)
+
         center_x = self.total_width // 2
 
-        turret_x = center_x + 3
-        turret_y = 20
-
         body_x = center_x - self.body_rect.width // 2
-        body_y = turret_y
-
+        body_y = 20
         tracks_x = center_x - self.tracks_rect.width // 2
         tracks_y = body_y + 27
+
+        if body_type == "Navy1":
+            turret_y = 25
+        else:
+            turret_y = 20
+
+        if flipped:
+            self.body = pygame.transform.flip(self.body, True, False)
+            self.tracks = pygame.transform.flip(self.tracks, True, False)
+            turret_x = center_x - self.turret_rect.width - 3
+        else:
+            turret_x = center_x + 3
 
         self.surface.blit(self.tracks, (tracks_x, tracks_y))
         self.surface.blit(self.turret, (turret_x, turret_y))
@@ -50,7 +58,6 @@ class Tank:
 
         self.x = 0
         self.y = 0
-
         self.total_height = self.total_height
         self.total_width = self.total_width
 
@@ -59,7 +66,6 @@ class Tank:
         self.gravity = 0.5
         self.speed = 2
         self.on_ground = False
-
     def check_collision_with_terrain(self, terrain_surface): #Cała klasa napisana samemu
         terrain_mask = pygame.mask.from_surface(terrain_surface)
 
