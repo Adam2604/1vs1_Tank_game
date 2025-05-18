@@ -205,14 +205,14 @@ def map_selection():
         screen.fill((30, 30, 30))
         menu_mouse_pos = pygame.mouse.get_pos()
 
-        menu_text = get_font(100).render("Wybierz Mapę", True, "#b68f40")
+        menu_text = get_font(100).render("Choose Map", True, "#b68f40")
         menu_rect = menu_text.get_rect(center=(768, 150))
         screen.blit(menu_text, menu_rect)
 
         map1_button = Button(
-            image=pygame.image.load("materialy_graficzne/Play Rect.png"),
+            image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Play Rect.png"), (450, 110)),
             position=(768, 300),
-            label="Mapa Pagórkowata",
+            label="Hilly",
             font=get_font(75),
             normal_color="#d7fcd4",
             hover_color="White"
@@ -221,16 +221,16 @@ def map_selection():
         map2_button = Button(
             image=pygame.image.load("materialy_graficzne/Play Rect.png"),
             position=(768, 450),
-            label="Mapa Płaska",
+            label="Flat",
             font=get_font(75),
             normal_color="#d7fcd4",
             hover_color="White"
         )
 
         back_button = Button(
-            image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
+            image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Quit Rect.png"), (510, 110)),
             position=(768, 600),
-            label="POWRÓT",
+            label="Return",
             font=get_font(75),
             normal_color="#d7fcd4",
             hover_color="White"
