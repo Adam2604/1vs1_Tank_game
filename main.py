@@ -304,6 +304,11 @@ def game_loop(map_type="flat"):
         if keys[pygame.K_LEFT]:   tank2.move(-1, terrain_surface, terrain_grid)
         if keys[pygame.K_RIGHT]:  tank2.move( 1, terrain_surface, terrain_grid)
 
+        # Obrót lufy za pomocą myszy
+        mouse_pos = pygame.mouse.get_pos()
+        tank1.update_turret_angle(mouse_pos)
+        tank2.update_turret_angle(mouse_pos)
+
         tank1.apply_gravity(terrain_surface, terrain_grid)
         tank2.apply_gravity(terrain_surface, terrain_grid)
 
