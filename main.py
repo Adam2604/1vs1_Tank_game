@@ -114,9 +114,18 @@ def pause_menu():
             hover_color="White"
         )
 
+        return_to_menu_button = Button(
+            image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Quit Rect.png"), (1100, 110)),
+            position=(768, 550),
+            label="RETURN TO MENU",
+            font=get_font(75),
+            normal_color="#d7fcd4",
+            hover_color="White"
+        )
+
         quit_button = Button(
             image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
-            position=(768, 550),
+            position=(768, 750),
             label="QUIT",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -125,6 +134,8 @@ def pause_menu():
 
         resume_button.update_color(menu_mouse_pos)
         resume_button.draw(screen)
+        return_to_menu_button.update_color(menu_mouse_pos)
+        return_to_menu_button.draw(screen)
         quit_button.update_color(menu_mouse_pos)
         quit_button.draw(screen)
 
@@ -143,6 +154,8 @@ def pause_menu():
                     sys.exit()
                 if resume_button.is_clicked(menu_mouse_pos):
                     return
+                if return_to_menu_button.is_clicked(menu_mouse_pos):
+                    main_menu()
 
         pygame.display.update()
 
@@ -211,8 +224,8 @@ def map_selection():
 
         map1_button = Button(
             image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Play Rect.png"), (450, 110)),
-            position=(768, 300),
-            label="Hilly",
+            position=(768, 350),
+            label="HILLY",
             font=get_font(75),
             normal_color="#d7fcd4",
             hover_color="White"
@@ -220,8 +233,8 @@ def map_selection():
 
         map2_button = Button(
             image=pygame.image.load("materialy_graficzne/Play Rect.png"),
-            position=(768, 450),
-            label="Flat",
+            position=(768, 550),
+            label="FLAT",
             font=get_font(75),
             normal_color="#d7fcd4",
             hover_color="White"
@@ -229,8 +242,8 @@ def map_selection():
 
         back_button = Button(
             image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Quit Rect.png"), (510, 110)),
-            position=(768, 600),
-            label="Return",
+            position=(768, 750),
+            label="RETURN",
             font=get_font(75),
             normal_color="#d7fcd4",
             hover_color="White"
