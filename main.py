@@ -1,6 +1,5 @@
 import pygame
 import sys
-from noise import pnoise1
 from button import Button
 from tanks import Tank
 
@@ -20,9 +19,12 @@ cloud2 = pygame.image.load("materialy_graficzne/cloud2.png")
 cloud3 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud8.png"), (450, 225))
 cloud4 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud4.png"), (400, 200))
 cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.png"), (200, 100))
-# Na początku pliku, gdzie definiujemy tank1, dodajmy tank2
+
 tank1 = Tank("Desert1")
-tank2 = Tank("Navy1", True)  # True oznacza, że czołg ma być odwrócony
+tank2 = Tank("Navy1", True)
+block_size   = 32 # rozmiar jednego kwadratu na mapie
+terrain_cols = screen_width  // block_size
+terrain_rows = screen_height // block_size
 
 
 def get_font(size):
@@ -100,12 +102,12 @@ def pause_menu():
         menu_mouse_pos = pygame.mouse.get_pos()
 
         menu_text = get_font(100).render("PAUSE", True, "#b68f40")
-        menu_rect = menu_text.get_rect(center=(768, 150))  # Zmienione z 960 na 768
+        menu_rect = menu_text.get_rect(center=(768, 150))
         screen.blit(menu_text, menu_rect)
 
         resume_button = Button(
             image=pygame.transform.scale(pygame.image.load("materialy_graficzne/Play Rect.png"), (500, 120)),
-            position=(768, 350),  # Zmienione z 960 na 768 i z 450 na 350
+            position=(768, 350),
             label="RESUME",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -114,7 +116,7 @@ def pause_menu():
 
         quit_button = Button(
             image=pygame.image.load("materialy_graficzne/Quit Rect.png"),
-            position=(768, 550),  # Zmienione z 960 na 768 i z 650 na 550
+            position=(768, 550),
             label="QUIT",
             font=get_font(75),
             normal_color="#d7fcd4",
@@ -155,114 +157,47 @@ lacunarity = 2.0
 base = 0
 
 
-def generate_terrain(map_type="hilly"):
-    points = []
+def generate_terrain(map_type="flat"):
+    grid = [[0]*terrain_cols for _ in range(terrain_rows)]
+
     if map_type == "flat":
-        base_height = 600
-        for x in range(0, terrain_width, step):
-            y = base_height
-            points.append((x, int(y)))
-    else:  # hilly
-        for x in range(0, terrain_width, step):
-            y = pnoise1(x / 150.0) * 80 + 500
-            points.append((x, int(y)))
+        base_row = terrain_rows * 3 // 4
+        for r in range(base_row, terrain_rows):
+            for c in range(terrain_cols):
+                grid[r][c] = 1
+    else:
+        import random
+        for c in range(terrain_cols):
+            hill_top = random.randint(terrain_rows//3, terrain_rows//2)
+            for r in range(hill_top, terrain_rows):
+                grid[r][c] = 1
 
-    points.append((terrain_width, screen_height))
-    points.append((0, screen_height))
-    return points
+    return grid
 
 
-def draw_terrain(screen, map_type="hilly"):
-    points = generate_terrain(map_type)
-    points.append((terrain_width, screen_height))
-    points.append((0, screen_height))
-    pygame.draw.polygon(screen, (18, 182, 83), points)  # kolor ziemi
 
-    for i in range(len(points) - 5):
-        x1, y1 = points[i]
-        x2, y2 = points[i + 1]
-        pygame.draw.line(screen, (100, 200, 100), (x1, y1), (x2, y2), 10)
-    
-    return points
+def draw_terrain(surface, terrain_grid):
+    for r, row in enumerate(terrain_grid):
+        for c, cell in enumerate(row):
+            if cell:
+                x = c * block_size
+                y = r * block_size
+                rect = pygame.Rect(x, y, block_size, block_size)
+                pygame.draw.rect(surface, (18,182,83), rect)    # wypełnienie
+                pygame.draw.rect(surface, (10,100,50), rect, 2) # obrys
+
+    for c in range(terrain_cols):
+        for r in range(terrain_rows):
+            if terrain_grid[r][c]:
+                x = c * block_size
+                y = r * block_size
+                pygame.draw.rect(surface, (100,200,100), (x, y, block_size, 4))
+                break
+
+
 
 
 terrain_points = generate_terrain()
-
-
-# W funkcji game_loop() dodajmy inicjalizację pozycji drugiego czołgu:
-def game_loop(map_type="hilly"):
-    global terrain_points
-    terrain_points = generate_terrain(map_type)
-    terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-
-    # Pozycja pierwszego czołgu (bez zmian)
-    starting_x1 = 100
-    terrain_y1 = 0
-    for i in range(len(terrain_points) - 1):
-        x1, y1 = terrain_points[i]
-        if x1 <= starting_x1 <= terrain_points[i + 1][0]:
-            terrain_y1 = y1
-            break
-
-    # Pozycja drugiego czołgu
-    starting_x2 = terrain_width - 200  # Pozycja z prawej strony
-    terrain_y2 = 0
-    for i in range(len(terrain_points) - 1):
-        x1, y1 = terrain_points[i]
-        if x1 <= starting_x2 <= terrain_points[i + 1][0]:
-            terrain_y2 = y1
-            break
-
-    tank1.set_position(starting_x1, terrain_y1 - tank1.total_height)
-    tank2.set_position(starting_x2, terrain_y2 - tank2.total_height)
-
-    while True:
-        terrain_surface.fill((0, 0, 0, 0))
-        screen.blit(sky, (0, 0))
-        # Aktualizacja pozycji chmur
-        screen.blit(cloud1, (1200, 50))
-        screen.blit(cloud2, (600, 200))
-        screen.blit(cloud5, (50, 50))
-        screen.blit(cloud4, (250, 175))
-        screen.blit(cloud3, (900, 190))
-
-        draw_terrain(terrain_surface, map_type)
-
-        # Kontrola pierwszego czołgu (WASD)
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
-            tank1.move(-1, terrain_surface, terrain_points)
-        if keys[pygame.K_d]:
-            tank1.move(1, terrain_surface, terrain_points)
-
-        # Kontrola drugiego czołgu (strzałki)
-        if keys[pygame.K_LEFT]:
-            tank2.move(-1, terrain_surface, terrain_points)
-        if keys[pygame.K_RIGHT]:
-            tank2.move(1, terrain_surface, terrain_points)
-
-        # Aktualizacja fizyki dla obu czołgów
-        tank1.apply_gravity(terrain_surface, terrain_points)
-        tank2.apply_gravity(terrain_surface, terrain_points)
-
-        # Rysowanie terenu i czołgów
-        draw_terrain(screen, map_type)
-        tank1.draw(screen)
-        tank2.draw(screen)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.K_F11:
-                fullscreen()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pause_menu()
-
-        pygame.display.update()
-        clock.tick(60)
-
 
 def map_selection():
     pygame.display.set_caption("TANKS - WYBÓR MAPY")
@@ -321,6 +256,56 @@ def map_selection():
                     main_menu()
 
         pygame.display.update()
+
+def game_loop(map_type="flat"):
+    terrain_grid = generate_terrain(map_type)
+    terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+
+    def find_height(x_pixel):
+        col = x_pixel // block_size
+        for r in range(terrain_rows):
+            if terrain_grid[r][col]:
+                return r * block_size
+        return screen_height
+
+    tank1.set_position(100, find_height(100) - tank1.total_height)
+    tank2.set_position(screen_width-200, find_height(screen_width-200) - tank2.total_height)
+
+    while True:
+        # tło i chmury
+        terrain_surface.fill((0,0,0,0))
+        screen.blit(sky,    (0,0))
+        screen.blit(cloud1, (1200,50))
+        screen.blit(cloud2, (600,200))
+        screen.blit(cloud5, (50,50))
+        screen.blit(cloud4, (250,175))
+        screen.blit(cloud3, (900,190))
+
+        draw_terrain(terrain_surface, terrain_grid)
+        screen.blit(terrain_surface, (0,0))
+
+        # Sterowanie czołgami za pomocą klawiszy WSAD
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:      tank1.move(-1, terrain_surface, terrain_grid)
+        if keys[pygame.K_d]:      tank1.move( 1, terrain_surface, terrain_grid)
+        if keys[pygame.K_LEFT]:   tank2.move(-1, terrain_surface, terrain_grid)
+        if keys[pygame.K_RIGHT]:  tank2.move( 1, terrain_surface, terrain_grid)
+
+        tank1.apply_gravity(terrain_surface, terrain_grid)
+        tank2.apply_gravity(terrain_surface, terrain_grid)
+
+        tank1.draw(screen)
+        tank2.draw(screen)
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit(); sys.exit()
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_F11: fullscreen()
+                if e.key == pygame.K_ESCAPE: pause_menu()
+
+        pygame.display.update()
+        clock.tick(60)
 
 
 main_menu()

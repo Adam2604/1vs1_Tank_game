@@ -97,6 +97,8 @@ class Tank:
             if self.check_collision_with_terrain(terrain_surface):
                 self.x = old_x
 
+
+
     def draw(self, screen):
         screen.blit(self.surface, (self.x, self.y))
 
