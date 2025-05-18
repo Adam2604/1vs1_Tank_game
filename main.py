@@ -26,6 +26,10 @@ block_size   = 32 # rozmiar jednego kwadratu na mapie
 terrain_cols = screen_width  // block_size
 terrain_rows = screen_height // block_size
 
+MAX_FUEL = 100  # maksymalna ilość "paliwa" (w pikselach)
+current_player = 1  
+fuel_remaining = MAX_FUEL  
+
 
 def get_font(size):
     return pygame.font.Font("materialy_graficzne/font.ttf", size)
@@ -271,9 +275,12 @@ def map_selection():
         pygame.display.update()
 
 def game_loop(map_type="flat"):
+    global current_player, fuel_remaining
     terrain_grid = generate_terrain(map_type)
     terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
+    fuel_font = pygame.font.SysFont(None, 36)
+    
     def find_height(x_pixel):
         col = x_pixel // block_size
         for r in range(terrain_rows):
@@ -283,11 +290,11 @@ def game_loop(map_type="flat"):
 
     tank1.set_position(100, find_height(100) - tank1.total_height)
     tank2.set_position(screen_width-200, find_height(screen_width-200) - tank2.total_height)
-
+    
     while True:
         # tło i chmury
         terrain_surface.fill((0,0,0,0))
-        screen.blit(sky,    (0,0))
+        screen.blit(sky, (0,0))
         screen.blit(cloud1, (1200,50))
         screen.blit(cloud2, (600,200))
         screen.blit(cloud5, (50,50))
@@ -297,12 +304,34 @@ def game_loop(map_type="flat"):
         draw_terrain(terrain_surface, terrain_grid)
         screen.blit(terrain_surface, (0,0))
 
-        # Sterowanie czołgami za pomocą klawiszy WSAD
+        current_player_text = fuel_font.render(f"Tura: Gracz {current_player}", True, (255, 255, 255))
+        screen.blit(current_player_text, (20, 20))
+        
+        if current_player == 1:
+            fuel_text = fuel_font.render(f"Paliwo: {int(fuel_remaining)}", True, (255, 255, 255))
+            screen.blit(fuel_text, (20, 50))
+            
+            # Pasek paliwa
+            bar_width = 200
+            bar_height = 20
+            pygame.draw.rect(screen, (100, 100, 100), (20, 80, bar_width, bar_height))  # tło paska
+            fuel_width = (fuel_remaining / MAX_FUEL) * bar_width
+            pygame.draw.rect(screen, (0, 255, 0), (20, 80, int(fuel_width), bar_height))  # pasek paliwa
+        
+        # Sterowanie czołgami
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:      tank1.move(-1, terrain_surface, terrain_grid)
-        if keys[pygame.K_d]:      tank1.move( 1, terrain_surface, terrain_grid)
-        if keys[pygame.K_LEFT]:   tank2.move(-1, terrain_surface, terrain_grid)
-        if keys[pygame.K_RIGHT]:  tank2.move( 1, terrain_surface, terrain_grid)
+        if current_player == 1 and fuel_remaining > 0:
+            if keys[pygame.K_a]:
+                if tank1.move(-1, terrain_surface, terrain_grid):
+                    fuel_remaining = max(0, fuel_remaining - 1)
+            if keys[pygame.K_d]:
+                if tank1.move(1, terrain_surface, terrain_grid):
+                    fuel_remaining = max(0, fuel_remaining - 1)
+        elif current_player == 2:
+            if keys[pygame.K_LEFT]:
+                tank2.move(-1, terrain_surface, terrain_grid)
+            if keys[pygame.K_RIGHT]:
+                tank2.move(1, terrain_surface, terrain_grid)
 
         # Obrót lufy za pomocą myszy
         mouse_pos = pygame.mouse.get_pos()
@@ -319,8 +348,16 @@ def game_loop(map_type="flat"):
             if e.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
             if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_F11: fullscreen()
-                if e.key == pygame.K_ESCAPE: pause_menu()
+                if e.key == pygame.K_F11:
+                    fullscreen()
+                if e.key == pygame.K_ESCAPE:
+                    pause_menu()
+                if e.key == pygame.K_SPACE:
+                    if current_player == 1:
+                        current_player = 2
+                    else:
+                        current_player = 1
+                        fuel_remaining = MAX_FUEL
 
         pygame.display.update()
         clock.tick(60)

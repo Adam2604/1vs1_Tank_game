@@ -114,6 +114,9 @@ class Tank:
             self.x = new_x
             if self.check_collision_with_terrain(terrain_surface):
                 self.x = old_x
+                return False
+            return True
+        return False
 
     def update_turret_angle(self, mouse_pos):
         turret_center_x = self.x + self.turret_pivot_x
