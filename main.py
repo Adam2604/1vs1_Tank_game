@@ -29,6 +29,8 @@ terrain_rows = screen_height // block_size
 MAX_FUEL = 100  # maksymalna ilość "paliwa" (w pikselach)
 current_player = 1  
 fuel_remaining = MAX_FUEL  
+fuel_remaining_p2 = MAX_FUEL
+
 
 
 def get_font(size):
@@ -275,11 +277,13 @@ def map_selection():
         pygame.display.update()
 
 def game_loop(map_type="flat"):
-    global current_player, fuel_remaining
+    global current_player, fuel_remaining, fuel_remaining_p2
     terrain_grid = generate_terrain(map_type)
     terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
     fuel_font = pygame.font.SysFont(None, 36)
+    bar_width = 200
+    bar_height = 20
     
     def find_height(x_pixel):
         col = x_pixel // block_size
@@ -304,19 +308,23 @@ def game_loop(map_type="flat"):
         draw_terrain(terrain_surface, terrain_grid)
         screen.blit(terrain_surface, (0,0))
 
+        # Wyświetlanie informacji o turze i paliwie
         current_player_text = fuel_font.render(f"Tura: Gracz {current_player}", True, (255, 255, 255))
         screen.blit(current_player_text, (20, 20))
         
+        # Wyświetlanie paliwa dla aktualnego gracza
         if current_player == 1:
             fuel_text = fuel_font.render(f"Paliwo: {int(fuel_remaining)}", True, (255, 255, 255))
-            screen.blit(fuel_text, (20, 50))
-            
-            # Pasek paliwa
-            bar_width = 200
-            bar_height = 20
-            pygame.draw.rect(screen, (100, 100, 100), (20, 80, bar_width, bar_height))  # tło paska
             fuel_width = (fuel_remaining / MAX_FUEL) * bar_width
-            pygame.draw.rect(screen, (0, 255, 0), (20, 80, int(fuel_width), bar_height))  # pasek paliwa
+        else:
+            fuel_text = fuel_font.render(f"Paliwo: {int(fuel_remaining_p2)}", True, (255, 255, 255))
+            fuel_width = (fuel_remaining_p2 / MAX_FUEL) * bar_width
+        
+        screen.blit(fuel_text, (20, 50))
+        
+        # Pasek paliwa
+        pygame.draw.rect(screen, (100, 100, 100), (20, 80, bar_width, bar_height))  # tło paska
+        pygame.draw.rect(screen, (0, 255, 0), (20, 80, int(fuel_width), bar_height))  # pasek paliwa
         
         # Sterowanie czołgami
         keys = pygame.key.get_pressed()
@@ -327,16 +335,15 @@ def game_loop(map_type="flat"):
             if keys[pygame.K_d]:
                 if tank1.move(1, terrain_surface, terrain_grid):
                     fuel_remaining = max(0, fuel_remaining - 1)
-        elif current_player == 2:
-            if keys[pygame.K_LEFT]:
-                tank2.move(-1, terrain_surface, terrain_grid)
-            if keys[pygame.K_RIGHT]:
-                tank2.move(1, terrain_surface, terrain_grid)
-
-        # Obrót lufy za pomocą myszy
-        mouse_pos = pygame.mouse.get_pos()
-        tank1.update_turret_angle(mouse_pos)
-        tank2.update_turret_angle(mouse_pos)
+            tank1.update_turret_angle(pygame.mouse.get_pos())
+        elif current_player == 2 and fuel_remaining_p2 > 0:
+            if keys[pygame.K_a]:
+                if tank2.move(-1, terrain_surface, terrain_grid):
+                    fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
+            if keys[pygame.K_d]:
+                if tank2.move(1, terrain_surface, terrain_grid):
+                    fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
+            tank2.update_turret_angle(pygame.mouse.get_pos())
 
         tank1.apply_gravity(terrain_surface, terrain_grid)
         tank2.apply_gravity(terrain_surface, terrain_grid)
@@ -358,6 +365,7 @@ def game_loop(map_type="flat"):
                     else:
                         current_player = 1
                         fuel_remaining = MAX_FUEL
+                        fuel_remaining_p2 = MAX_FUEL
 
         pygame.display.update()
         clock.tick(60)

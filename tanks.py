@@ -7,7 +7,6 @@ class Tank:
         base_path = "czolgi/PNG/default size/"
 
         #różne rodzaje czołgów
-        # Zachowaj oryginalną grafikę lufy przed jakimkolwiek przekształceniem
         self.original_turret = pygame.image.load(f"{base_path}tanks_turret1.png").convert_alpha()
         if body_type == "Desert1":
             self.body = pygame.image.load(f"{base_path}tanks_tankDesert_body1.png").convert_alpha()
@@ -109,7 +108,8 @@ class Tank:
     def move(self, direction, terrain_surface, terrain_points):
         new_x = self.x + (direction * self.speed)
 
-        if 0 <= new_x <= 1280 - self.total_width:
+        screen_width = terrain_surface.get_width()
+        if 0 <= new_x <= screen_width - self.total_width:
             old_x = self.x
             self.x = new_x
             if self.check_collision_with_terrain(terrain_surface):
@@ -127,13 +127,15 @@ class Tank:
         angle = math.degrees(math.atan2(dy, dx)) * -1
 
         if self.flipped:
-            min_angle = 175
-            max_angle = 200
-            angle = max(min_angle, min(max_angle, angle))
+            if angle < 0:
+                angle += 360
+            min_angle = 150
+            max_angle = 185
+            angle = min(max(angle, min_angle), max_angle)
         else:
             min_angle = -5
             max_angle = 30
-            angle = max(min_angle, min(max_angle, angle))
+            angle = min(max(angle, min_angle), max_angle)
 
         self.turret_angle = angle
 
