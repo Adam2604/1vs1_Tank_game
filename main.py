@@ -328,21 +328,25 @@ def game_loop(map_type="flat"):
         
         # Sterowanie czołgami
         keys = pygame.key.get_pressed()
-        if current_player == 1 and fuel_remaining > 0:
-            if keys[pygame.K_a]:
-                if tank1.move(-1, terrain_surface, terrain_grid):
-                    fuel_remaining = max(0, fuel_remaining - 1)
-            if keys[pygame.K_d]:
-                if tank1.move(1, terrain_surface, terrain_grid):
-                    fuel_remaining = max(0, fuel_remaining - 1)
+        if current_player == 1:
+            # Ruch czołgu tylko gdy jest paliwo
+            if fuel_remaining > 0:
+                if keys[pygame.K_a]:
+                    if tank1.move(-1, terrain_surface, terrain_grid):
+                        fuel_remaining = max(0, fuel_remaining - 1)
+                if keys[pygame.K_d]:
+                    if tank1.move(1, terrain_surface, terrain_grid):
+                        fuel_remaining = max(0, fuel_remaining - 1)
             tank1.update_turret_angle(pygame.mouse.get_pos())
-        elif current_player == 2 and fuel_remaining_p2 > 0:
-            if keys[pygame.K_a]:
-                if tank2.move(-1, terrain_surface, terrain_grid):
-                    fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
-            if keys[pygame.K_d]:
-                if tank2.move(1, terrain_surface, terrain_grid):
-                    fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
+        elif current_player == 2:
+            # Ruch czołgu tylko gdy jest paliwo
+            if fuel_remaining_p2 > 0:
+                if keys[pygame.K_a]:
+                    if tank2.move(-1, terrain_surface, terrain_grid):
+                        fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
+                if keys[pygame.K_d]:
+                    if tank2.move(1, terrain_surface, terrain_grid):
+                        fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
             tank2.update_turret_angle(pygame.mouse.get_pos())
 
         tank1.apply_gravity(terrain_surface, terrain_grid)
