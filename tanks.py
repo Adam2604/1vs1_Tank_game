@@ -187,12 +187,8 @@ class Tank:
             angle_rad = math.radians(self.turret_angle)
             barrel_length = 20  # Długość lufy
 
-            if self.flipped:  # Dla odwróconego czołgu
-                start_x = self.x + self.turret_pivot_x - math.cos(angle_rad) * barrel_length
-                self.bullet_velocity_x = -bullet_speed * math.cos(angle_rad)
-            else:  # Dla normalnego czołgu
-                start_x = self.x + self.turret_pivot_x + math.cos(angle_rad) * barrel_length
-                self.bullet_velocity_x = bullet_speed * math.cos(angle_rad)
+            start_x = self.x + self.turret_pivot_x + math.cos(angle_rad) * barrel_length
+            self.bullet_velocity_x = bullet_speed * math.cos(angle_rad)
 
             start_y = self.y + self.turret_pivot_y - math.sin(angle_rad) * barrel_length
             self.bullet_velocity_y = -bullet_speed * math.sin(angle_rad)
@@ -203,15 +199,13 @@ class Tank:
 
     def update_bullet(self, terrain_surface):
         if self.shooting:
-            # Aktualizuj pozycję pocisku
             self.bullet_x += self.bullet_velocity_x
             self.bullet_y += self.bullet_velocity_y
             self.bullet_velocity_y += self.bullet_gravity
 
-            # Dodaj aktualną pozycję do listy punktów trajektorii
             self.bullet_positions.append((self.bullet_x, self.bullet_y))
 
-            # Sprawdź kolizję z terenem
+            # Sprawdza kolizję z terenem
             bullet_rect = self.bullet.get_rect(center=(self.bullet_x, self.bullet_y))
             terrain_mask = pygame.mask.from_surface(terrain_surface)
             bullet_surface = pygame.Surface(bullet_rect.size, pygame.SRCALPHA)
@@ -223,7 +217,7 @@ class Tank:
                 self.shooting = False
                 self.bullet_positions = []
 
-            # Sprawdź czy pocisk wyleciał poza ekran
+            # Sprawdza czy pocisk wyleciał poza ekran
             if (self.bullet_x < 0 or self.bullet_x > terrain_surface.get_width() or
                     self.bullet_y > terrain_surface.get_height()):
                 self.shooting = False
