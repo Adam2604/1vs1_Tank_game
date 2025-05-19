@@ -183,23 +183,22 @@ class Tank:
     def shoot(self):
         if not self.shooting:
             self.shooting = True
-            angle_rad = math.radians(-self.turret_angle)
-            barrel_length = 40
+            bullet_speed = self.bullet_power  # Stała prędkość pocisku
+            angle_rad = math.radians(self.turret_angle)
+            barrel_length = 20  # Długość lufy
 
-            if self.flipped:
+            if self.flipped:  # Dla odwróconego czołgu
                 start_x = self.x + self.turret_pivot_x - math.cos(angle_rad) * barrel_length
-                direction = -1
-            else:
+                self.bullet_velocity_x = -bullet_speed * math.cos(angle_rad)
+            else:  # Dla normalnego czołgu
                 start_x = self.x + self.turret_pivot_x + math.cos(angle_rad) * barrel_length
-                direction = 1
+                self.bullet_velocity_x = bullet_speed * math.cos(angle_rad)
 
             start_y = self.y + self.turret_pivot_y - math.sin(angle_rad) * barrel_length
+            self.bullet_velocity_y = -bullet_speed * math.sin(angle_rad)
 
             self.bullet_x = start_x
             self.bullet_y = start_y
-
-            self.bullet_velocity_x = math.cos(angle_rad) * self.bullet_power * direction
-            self.bullet_velocity_y = -math.sin(angle_rad) * self.bullet_power
             self.bullet_positions = [(self.bullet_x, self.bullet_y)]
 
     def update_bullet(self, terrain_surface):
