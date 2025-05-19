@@ -29,9 +29,14 @@ class Tank:
         #pocisk
         self.bullet = pygame.image.load("czolgi/PNG/default size/tank_bullet5.png").convert_alpha()
         self.bullet_rect = self.bullet.get_rect()
-        self.is_shooting = False
         self.bullet_x = 0
         self.bullet_y = 0
+        self.bullet_velocity_x = 0
+        self.bullet_velocity_y = 0
+        self.bullet_gravity = 0.5
+        self.bullet_power = 15
+        self.bullet_positions = []
+        self.shooting = False
 
         self.body_rect = self.body.get_rect()
         self.tracks_rect = self.tracks.get_rect()
@@ -158,6 +163,13 @@ class Tank:
         rotated_turret = pygame.transform.rotate(self.original_turret, self.turret_angle)
         turret_rect = rotated_turret.get_rect(center=(turret_x + self.turret_rect.width // 2, 
                                                  turret_y + self.turret_rect.height // 2))
+
+        if self.shooting:
+            if len(self.bullet_positions) > 1:
+                pygame.draw.lines(screen, (255, 255, 255), False, self.bullet_positions, 2)
+            bullet_rect = self.bullet.get_rect(center=(self.bullet_x, self.bullet_y))
+            screen.blit(self.bullet, bullet_rect)
+
         new_surface.blit(rotated_turret, turret_rect)
         new_surface.blit(self.tracks, (tracks_x, tracks_y))
         new_surface.blit(self.body, (body_x, body_y))
@@ -167,3 +179,53 @@ class Tank:
     def set_position(self, x, y):
         self.x = x
         self.y = y
+
+    def shoot(self):
+        if not self.shooting:
+            self.shooting = True
+            angle_rad = math.radians(-self.turret_angle)
+            barrel_length = 40
+
+            if self.flipped:
+                start_x = self.x + self.turret_pivot_x - math.cos(angle_rad) * barrel_length
+                direction = -1
+            else:
+                start_x = self.x + self.turret_pivot_x + math.cos(angle_rad) * barrel_length
+                direction = 1
+
+            start_y = self.y + self.turret_pivot_y - math.sin(angle_rad) * barrel_length
+
+            self.bullet_x = start_x
+            self.bullet_y = start_y
+
+            self.bullet_velocity_x = math.cos(angle_rad) * self.bullet_power * direction
+            self.bullet_velocity_y = -math.sin(angle_rad) * self.bullet_power
+            self.bullet_positions = [(self.bullet_x, self.bullet_y)]
+
+    def update_bullet(self, terrain_surface):
+        if self.shooting:
+            # Aktualizuj pozycję pocisku
+            self.bullet_x += self.bullet_velocity_x
+            self.bullet_y += self.bullet_velocity_y
+            self.bullet_velocity_y += self.bullet_gravity
+
+            # Dodaj aktualną pozycję do listy punktów trajektorii
+            self.bullet_positions.append((self.bullet_x, self.bullet_y))
+
+            # Sprawdź kolizję z terenem
+            bullet_rect = self.bullet.get_rect(center=(self.bullet_x, self.bullet_y))
+            terrain_mask = pygame.mask.from_surface(terrain_surface)
+            bullet_surface = pygame.Surface(bullet_rect.size, pygame.SRCALPHA)
+            bullet_surface.blit(self.bullet, (0, 0))
+            bullet_mask = pygame.mask.from_surface(bullet_surface)
+
+            offset = (int(bullet_rect.x), int(bullet_rect.y))
+            if terrain_mask.overlap(bullet_mask, offset):
+                self.shooting = False
+                self.bullet_positions = []
+
+            # Sprawdź czy pocisk wyleciał poza ekran
+            if (self.bullet_x < 0 or self.bullet_x > terrain_surface.get_width() or
+                    self.bullet_y > terrain_surface.get_height()):
+                self.shooting = False
+                self.bullet_positions = []

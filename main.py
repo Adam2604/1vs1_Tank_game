@@ -355,7 +355,17 @@ def game_loop(map_type="flat"):
         tank1.draw(screen)
         tank2.draw(screen)
 
+        # Aktualizacja pocisków
+        tank1.update_bullet(terrain_surface)
+        tank2.update_bullet(terrain_surface)
+
         for e in pygame.event.get():
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                if e.button == 1:  # Lewy przycisk myszy
+                    if current_player == 1:
+                        tank1.shoot()
+                    else:
+                        tank2.shoot()
             if e.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
             if e.type == pygame.KEYDOWN:
