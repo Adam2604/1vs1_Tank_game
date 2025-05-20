@@ -329,7 +329,6 @@ def game_loop(map_type="flat"):
         # Sterowanie czołgami
         keys = pygame.key.get_pressed()
         if current_player == 1:
-            # Ruch czołgu tylko gdy jest paliwo
             if fuel_remaining > 0:
                 if keys[pygame.K_a]:
                     if tank1.move(-1, terrain_surface, terrain_grid):
@@ -339,7 +338,6 @@ def game_loop(map_type="flat"):
                         fuel_remaining = max(0, fuel_remaining - 1)
             tank1.update_turret_angle(pygame.mouse.get_pos())
         elif current_player == 2:
-            # Ruch czołgu tylko gdy jest paliwo
             if fuel_remaining_p2 > 0:
                 if keys[pygame.K_a]:
                     if tank2.move(-1, terrain_surface, terrain_grid):
@@ -352,12 +350,22 @@ def game_loop(map_type="flat"):
         tank1.apply_gravity(terrain_surface, terrain_grid)
         tank2.apply_gravity(terrain_surface, terrain_grid)
 
+        # Stan pocisku przed aktualizacją
+        was_shooting = current_player == 1 and tank1.shooting or current_player == 2 and tank2.shooting
+
+        if current_player == 1:
+            tank1.update_bullet(terrain_surface)
+            if was_shooting and not tank1.shooting:
+                current_player = 2
+                fuel_remaining_p2 = MAX_FUEL
+        else:
+            tank2.update_bullet(terrain_surface)
+            if was_shooting and not tank2.shooting:
+                current_player = 1
+                fuel_remaining = MAX_FUEL
+
         tank1.draw(screen)
         tank2.draw(screen)
-
-        # Aktualizacja pocisków
-        tank1.update_bullet(terrain_surface)
-        tank2.update_bullet(terrain_surface)
 
         for e in pygame.event.get():
             if e.type == pygame.MOUSEBUTTONDOWN:
@@ -373,13 +381,6 @@ def game_loop(map_type="flat"):
                     fullscreen()
                 if e.key == pygame.K_ESCAPE:
                     pause_menu()
-                if e.key == pygame.K_SPACE:
-                    if current_player == 1:
-                        current_player = 2
-                    else:
-                        current_player = 1
-                        fuel_remaining = MAX_FUEL
-                        fuel_remaining_p2 = MAX_FUEL
 
         pygame.display.update()
         clock.tick(60)
