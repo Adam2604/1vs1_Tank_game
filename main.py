@@ -350,16 +350,16 @@ def game_loop(map_type="flat"):
         tank1.apply_gravity(terrain_surface, terrain_grid)
         tank2.apply_gravity(terrain_surface, terrain_grid)
 
-        # Stan pocisku przed aktualizacją
         was_shooting = current_player == 1 and tank1.shooting or current_player == 2 and tank2.shooting
 
+        # Aktualizacja pocisków i sprawdzenie zakończenia strzału
         if current_player == 1:
-            tank1.update_bullet(terrain_surface)
+            tank1.update_bullet(terrain_surface, tank2)
             if was_shooting and not tank1.shooting:
                 current_player = 2
                 fuel_remaining_p2 = MAX_FUEL
         else:
-            tank2.update_bullet(terrain_surface)
+            tank2.update_bullet(terrain_surface, tank1)
             if was_shooting and not tank2.shooting:
                 current_player = 1
                 fuel_remaining = MAX_FUEL

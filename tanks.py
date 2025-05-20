@@ -197,27 +197,41 @@ class Tank:
             self.bullet_y = start_y
             self.bullet_positions = [(self.bullet_x, self.bullet_y)]
 
-    def update_bullet(self, terrain_surface):
+    def update_bullet(self, terrain_surface, other_tank=None):
         if self.shooting:
             self.bullet_x += self.bullet_velocity_x
             self.bullet_y += self.bullet_velocity_y
             self.bullet_velocity_y += self.bullet_gravity
-
             self.bullet_positions.append((self.bullet_x, self.bullet_y))
 
-            # Sprawdza kolizję z terenem
             bullet_rect = self.bullet.get_rect(center=(self.bullet_x, self.bullet_y))
-            terrain_mask = pygame.mask.from_surface(terrain_surface)
             bullet_surface = pygame.Surface(bullet_rect.size, pygame.SRCALPHA)
             bullet_surface.blit(self.bullet, (0, 0))
             bullet_mask = pygame.mask.from_surface(bullet_surface)
 
-            offset = (int(bullet_rect.x), int(bullet_rect.y))
-            if terrain_mask.overlap(bullet_mask, offset):
+            # Sprawdzanie kolizji z terenem
+            terrain_mask = pygame.mask.from_surface(terrain_surface)
+            terrain_offset = (int(bullet_rect.x), int(bullet_rect.y))
+            if terrain_mask.overlap(bullet_mask, terrain_offset):
                 self.shooting = False
                 self.bullet_positions = []
+                return
 
-            # Sprawdza czy pocisk wyleciał poza ekran
+            # Sprawdzanie kolizji z drugim czołgiem
+            if other_tank:
+                tank_rect = pygame.Rect(other_tank.x, other_tank.y, 
+                                      other_tank.total_width, other_tank.total_height)
+                
+                if bullet_rect.colliderect(tank_rect):
+                    tank_offset = (int(bullet_rect.x - other_tank.x), 
+                                 int(bullet_rect.y - other_tank.y))
+                    
+                    if other_tank.mask.overlap(bullet_mask, tank_offset):
+                        self.shooting = False
+                        self.bullet_positions = []
+                        return
+
+            # Sprawdzanie czy pocisk jest poza ekranem
             if (self.bullet_x < 0 or self.bullet_x > terrain_surface.get_width() or
                     self.bullet_y > terrain_surface.get_height()):
                 self.shooting = False
