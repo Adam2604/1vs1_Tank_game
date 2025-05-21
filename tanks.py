@@ -1,12 +1,13 @@
 import pygame
 import math
 
+
 class Tank:
     def __init__(self, body_type, flipped=False):
         # Ścieżka do zasobów
         base_path = "czolgi/PNG/default size/"
 
-        #różne rodzaje czołgów
+        # różne rodzaje czołgów
         self.original_turret = pygame.image.load(f"{base_path}tanks_turret1.png").convert_alpha()
         if body_type == "Desert1":
             self.body = pygame.image.load(f"{base_path}tanks_tankDesert_body1.png").convert_alpha()
@@ -26,7 +27,7 @@ class Tank:
             self.tracks = pygame.image.load(f"{base_path}tanks_tankTracks2.png").convert_alpha()
             self.turret = pygame.image.load(f"{base_path}tanks_turret3.png").convert_alpha()
 
-        #pocisk
+        # pocisk
         self.bullet = pygame.image.load("czolgi/PNG/default size/tank_bullet5.png").convert_alpha()
         self.bullet_rect = self.bullet.get_rect()
         self.bullet_x = 0
@@ -88,14 +89,24 @@ class Tank:
         self.turret_pivot_x = turret_x + self.turret_rect.width // 2
         self.turret_pivot_y = turret_y + self.turret_rect.height // 2
 
-    def check_collision_with_terrain(self, terrain_surface): #Cała klasa napisana samemu
+        # Istniejący kod init...
+        self.update_terrain_function = None
+        self.terrain_grid = None
+
+    def set_update_terrain_function(self, function):
+        self.update_terrain_function = function
+
+    def set_terrain_grid(self, grid):
+        self.terrain_grid = grid
+
+    def check_collision_with_terrain(self, terrain_surface):  # Cała klasa napisana samemu
         terrain_mask = pygame.mask.from_surface(terrain_surface)
 
         offset = (int(self.x), int(self.y))
         overlap = terrain_mask.overlap(self.mask, offset)
         return overlap is not None
 
-    def apply_gravity(self, terrain_surface, terrain_points): #Klasa napisana samemu
+    def apply_gravity(self, terrain_surface, terrain_points):  # Klasa napisana samemu
         test_y = self.y + self.velocity_y
 
         old_y = self.y
@@ -146,23 +157,23 @@ class Tank:
 
     def draw(self, screen):
         new_surface = pygame.Surface((self.total_width, self.total_height), pygame.SRCALPHA)
-        
+
         center_x = self.total_width // 2
         body_x = center_x - self.body_rect.width // 2
         body_y = 20
         tracks_x = center_x - self.tracks_rect.width // 2
         tracks_y = body_y + 27
-        
+
         if self.flipped:
             turret_x = center_x - self.turret_rect.width - 3
         else:
             turret_x = center_x - 7
-        
+
         turret_y = 25 if hasattr(self, 'navy') else 18
 
         rotated_turret = pygame.transform.rotate(self.original_turret, self.turret_angle)
-        turret_rect = rotated_turret.get_rect(center=(turret_x + self.turret_rect.width // 2, 
-                                                 turret_y + self.turret_rect.height // 2))
+        turret_rect = rotated_turret.get_rect(center=(turret_x + self.turret_rect.width // 2,
+                                                      turret_y + self.turret_rect.height // 2))
 
         if self.shooting:
             if len(self.bullet_positions) > 1:
@@ -173,9 +184,9 @@ class Tank:
         new_surface.blit(rotated_turret, turret_rect)
         new_surface.blit(self.tracks, (tracks_x, tracks_y))
         new_surface.blit(self.body, (body_x, body_y))
-        
+
         screen.blit(new_surface, (self.x, self.y))
-        
+
     def set_position(self, x, y):
         self.x = x
         self.y = y
@@ -213,19 +224,29 @@ class Tank:
             terrain_mask = pygame.mask.from_surface(terrain_surface)
             terrain_offset = (int(bullet_rect.x), int(bullet_rect.y))
             if terrain_mask.overlap(bullet_mask, terrain_offset):
+                # Obszar modyfikacji terenu po trafieniu
+                impact_area = (
+                    int(self.bullet_x - 30),
+                    int(self.bullet_y - 30),
+                    60, 60
+                )
+                
+                if self.update_terrain_function and self.terrain_grid:
+                    self.update_terrain_function(terrain_surface, self.terrain_grid, impact_area)
+            
                 self.shooting = False
                 self.bullet_positions = []
                 return
 
             # Sprawdzanie kolizji z drugim czołgiem
             if other_tank:
-                tank_rect = pygame.Rect(other_tank.x, other_tank.y, 
-                                      other_tank.total_width, other_tank.total_height)
-                
+                tank_rect = pygame.Rect(other_tank.x, other_tank.y,
+                                        other_tank.total_width, other_tank.total_height)
+
                 if bullet_rect.colliderect(tank_rect):
-                    tank_offset = (int(bullet_rect.x - other_tank.x), 
-                                 int(bullet_rect.y - other_tank.y))
-                    
+                    tank_offset = (int(bullet_rect.x - other_tank.x),
+                                   int(bullet_rect.y - other_tank.y))
+
                     if other_tank.mask.overlap(bullet_mask, tank_offset):
                         self.shooting = False
                         self.bullet_positions = []

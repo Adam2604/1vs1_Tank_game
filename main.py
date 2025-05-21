@@ -22,15 +22,14 @@ cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.pn
 
 tank1 = Tank("Desert1")
 tank2 = Tank("Navy1", True)
-block_size   = 32 # rozmiar jednego kwadratu na mapie
-terrain_cols = screen_width  // block_size
+block_size = 32  # rozmiar jednego kwadratu na mapie
+terrain_cols = screen_width // block_size
 terrain_rows = screen_height // block_size
 
-MAX_FUEL = 100  # maksymalna ilość "paliwa" (w pikselach)
-current_player = 1  
-fuel_remaining = MAX_FUEL  
+MAX_FUEL = 100  # maksymalna ilość paliwa (w pikselach)
+current_player = 1
+fuel_remaining = MAX_FUEL
 fuel_remaining_p2 = MAX_FUEL
-
 
 
 def get_font(size):
@@ -177,7 +176,7 @@ base = 0
 
 
 def generate_terrain(map_type="flat"):
-    grid = [[0]*terrain_cols for _ in range(terrain_rows)]
+    grid = [[0] * terrain_cols for _ in range(terrain_rows)]
 
     if map_type == "flat":
         base_row = terrain_rows * 3 // 4
@@ -187,12 +186,11 @@ def generate_terrain(map_type="flat"):
     else:
         import random
         for c in range(terrain_cols):
-            hill_top = random.randint(terrain_rows//3, terrain_rows//2)
+            hill_top = random.randint(terrain_rows // 3, terrain_rows // 2)
             for r in range(hill_top, terrain_rows):
                 grid[r][c] = 1
 
     return grid
-
 
 
 def draw_terrain(surface, terrain_grid):
@@ -202,21 +200,20 @@ def draw_terrain(surface, terrain_grid):
                 x = c * block_size
                 y = r * block_size
                 rect = pygame.Rect(x, y, block_size, block_size)
-                pygame.draw.rect(surface, (18,182,83), rect)    # wypełnienie
-                pygame.draw.rect(surface, (10,100,50), rect, 2) # obrys
+                pygame.draw.rect(surface, (18, 182, 83), rect)
+                pygame.draw.rect(surface, (10, 100, 50), rect, 2)
 
     for c in range(terrain_cols):
         for r in range(terrain_rows):
             if terrain_grid[r][c]:
                 x = c * block_size
                 y = r * block_size
-                pygame.draw.rect(surface, (100,200,100), (x, y, block_size, 4))
+                pygame.draw.rect(surface, (100, 200, 100), (x, y, block_size, 4))
                 break
 
 
-
-
 terrain_points = generate_terrain()
+
 
 def map_selection():
     pygame.display.set_caption("TANKS - WYBÓR MAPY")
@@ -276,15 +273,25 @@ def map_selection():
 
         pygame.display.update()
 
+
 def game_loop(map_type="flat"):
     global current_player, fuel_remaining, fuel_remaining_p2
-    terrain_grid = generate_terrain(map_type)
-    terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
+    terrain_grid = generate_terrain(map_type)
+    static_terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    draw_terrain(static_terrain_surface, terrain_grid)
+
+    tank1.set_update_terrain_function(update_terrain)
+    tank2.set_update_terrain_function(update_terrain)
+    tank1.set_terrain_grid(terrain_grid)  # Dodaj dostęp do siatki terenu
+    tank2.set_terrain_grid(terrain_grid)
+
+    dynamic_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    
     fuel_font = pygame.font.SysFont(None, 36)
     bar_width = 200
     bar_height = 20
-    
+
     def find_height(x_pixel):
         col = x_pixel // block_size
         for r in range(terrain_rows):
@@ -293,25 +300,24 @@ def game_loop(map_type="flat"):
         return screen_height
 
     tank1.set_position(100, find_height(100) - tank1.total_height)
-    tank2.set_position(screen_width-200, find_height(screen_width-200) - tank2.total_height)
-    
+    tank2.set_position(screen_width - 200, find_height(screen_width - 200) - tank2.total_height)
+
     while True:
-        # tło i chmury
-        terrain_surface.fill((0,0,0,0))
-        screen.blit(sky, (0,0))
-        screen.blit(cloud1, (1200,50))
-        screen.blit(cloud2, (600,200))
-        screen.blit(cloud5, (50,50))
-        screen.blit(cloud4, (250,175))
-        screen.blit(cloud3, (900,190))
+        dynamic_surface.fill((0, 0, 0, 0))
 
-        draw_terrain(terrain_surface, terrain_grid)
-        screen.blit(terrain_surface, (0,0))
+        screen.blit(sky, (0, 0))
+        screen.blit(cloud1, (1200, 50))
+        screen.blit(cloud2, (600, 200))
+        screen.blit(cloud5, (50, 50))
+        screen.blit(cloud4, (250, 175))
+        screen.blit(cloud3, (900, 190))
+        screen.blit(static_terrain_surface, (0, 0))
 
+        
         # Wyświetlanie informacji o turze i paliwie
         current_player_text = fuel_font.render(f"Tura: Gracz {current_player}", True, (255, 255, 255))
         screen.blit(current_player_text, (20, 20))
-        
+
         # Wyświetlanie paliwa dla aktualnego gracza
         if current_player == 1:
             fuel_text = fuel_font.render(f"Paliwo: {int(fuel_remaining)}", True, (255, 255, 255))
@@ -319,47 +325,46 @@ def game_loop(map_type="flat"):
         else:
             fuel_text = fuel_font.render(f"Paliwo: {int(fuel_remaining_p2)}", True, (255, 255, 255))
             fuel_width = (fuel_remaining_p2 / MAX_FUEL) * bar_width
-        
+
         screen.blit(fuel_text, (20, 50))
-        
+
         # Pasek paliwa
-        pygame.draw.rect(screen, (100, 100, 100), (20, 80, bar_width, bar_height))  # tło paska
-        pygame.draw.rect(screen, (0, 255, 0), (20, 80, int(fuel_width), bar_height))  # pasek paliwa
-        
+        pygame.draw.rect(screen, (100, 100, 100), (20, 80, bar_width, bar_height))
+        pygame.draw.rect(screen, (0, 255, 0), (20, 80, int(fuel_width), bar_height))
+
         # Sterowanie czołgami
         keys = pygame.key.get_pressed()
         if current_player == 1:
             if fuel_remaining > 0:
                 if keys[pygame.K_a]:
-                    if tank1.move(-1, terrain_surface, terrain_grid):
+                    if tank1.move(-1, static_terrain_surface, terrain_grid):
                         fuel_remaining = max(0, fuel_remaining - 1)
                 if keys[pygame.K_d]:
-                    if tank1.move(1, terrain_surface, terrain_grid):
+                    if tank1.move(1, static_terrain_surface, terrain_grid):
                         fuel_remaining = max(0, fuel_remaining - 1)
             tank1.update_turret_angle(pygame.mouse.get_pos())
         elif current_player == 2:
             if fuel_remaining_p2 > 0:
                 if keys[pygame.K_a]:
-                    if tank2.move(-1, terrain_surface, terrain_grid):
+                    if tank2.move(-1, static_terrain_surface, terrain_grid):
                         fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
                 if keys[pygame.K_d]:
-                    if tank2.move(1, terrain_surface, terrain_grid):
+                    if tank2.move(1, static_terrain_surface, terrain_grid):
                         fuel_remaining_p2 = max(0, fuel_remaining_p2 - 1)
             tank2.update_turret_angle(pygame.mouse.get_pos())
 
-        tank1.apply_gravity(terrain_surface, terrain_grid)
-        tank2.apply_gravity(terrain_surface, terrain_grid)
+        tank1.apply_gravity(static_terrain_surface, terrain_grid)
+        tank2.apply_gravity(static_terrain_surface, terrain_grid)
 
         was_shooting = current_player == 1 and tank1.shooting or current_player == 2 and tank2.shooting
 
-        # Aktualizacja pocisków i sprawdzenie zakończenia strzału
         if current_player == 1:
-            tank1.update_bullet(terrain_surface, tank2)
+            tank1.update_bullet(static_terrain_surface, tank2)
             if was_shooting and not tank1.shooting:
                 current_player = 2
                 fuel_remaining_p2 = MAX_FUEL
         else:
-            tank2.update_bullet(terrain_surface, tank1)
+            tank2.update_bullet(static_terrain_surface, tank1)
             if was_shooting and not tank2.shooting:
                 current_player = 1
                 fuel_remaining = MAX_FUEL
@@ -375,7 +380,8 @@ def game_loop(map_type="flat"):
                     else:
                         tank2.shoot()
             if e.type == pygame.QUIT:
-                pygame.quit(); sys.exit()
+                pygame.quit();
+                sys.exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_F11:
                     fullscreen()
@@ -384,6 +390,24 @@ def game_loop(map_type="flat"):
 
         pygame.display.update()
         clock.tick(60)
+
+def update_terrain(static_surface, terrain_grid, modified_area):
+    x, y, width, height = modified_area
+    static_surface.fill((0, 0, 0, 0), modified_area)
+
+    start_col = max(0, x // block_size)
+    end_col = min(terrain_cols, (x + width) // block_size + 1)
+    start_row = max(0, y // block_size)
+    end_row = min(terrain_rows, (y + height) // block_size + 1)
+
+    for r in range(start_row, end_row):
+        for c in range(start_col, end_col):
+            if terrain_grid[r][c]:
+                x = c * block_size
+                y = r * block_size
+                rect = pygame.Rect(x, y, block_size, block_size)
+                pygame.draw.rect(static_surface, (18, 182, 83), rect)
+                pygame.draw.rect(static_surface, (10, 100, 50), rect, 2)
 
 
 main_menu()
