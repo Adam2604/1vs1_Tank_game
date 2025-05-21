@@ -22,7 +22,7 @@ cloud5 = pygame.transform.scale(pygame.image.load("materialy_graficzne/cloud5.pn
 
 tank1 = Tank("Desert1")
 tank2 = Tank("Navy1", True)
-block_size = 32  # rozmiar jednego kwadratu na mapie
+block_size = 10  # rozmiar jednego kwadratu na mapie
 terrain_cols = screen_width // block_size
 terrain_rows = screen_height // block_size
 
@@ -201,7 +201,6 @@ def draw_terrain(surface, terrain_grid):
                 y = r * block_size
                 rect = pygame.Rect(x, y, block_size, block_size)
                 pygame.draw.rect(surface, (18, 182, 83), rect)
-                pygame.draw.rect(surface, (10, 100, 50), rect, 2)
 
     for c in range(terrain_cols):
         for r in range(terrain_rows):
@@ -283,11 +282,11 @@ def game_loop(map_type="flat"):
 
     tank1.set_update_terrain_function(update_terrain)
     tank2.set_update_terrain_function(update_terrain)
-    tank1.set_terrain_grid(terrain_grid)  # Dodaj dostęp do siatki terenu
+    tank1.set_terrain_grid(terrain_grid)
     tank2.set_terrain_grid(terrain_grid)
 
     dynamic_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    
+
     fuel_font = pygame.font.SysFont(None, 36)
     bar_width = 200
     bar_height = 20
@@ -313,7 +312,7 @@ def game_loop(map_type="flat"):
         screen.blit(cloud3, (900, 190))
         screen.blit(static_terrain_surface, (0, 0))
 
-        
+
         # Wyświetlanie informacji o turze i paliwie
         current_player_text = fuel_font.render(f"Tura: Gracz {current_player}", True, (255, 255, 255))
         screen.blit(current_player_text, (20, 20))
@@ -393,21 +392,48 @@ def game_loop(map_type="flat"):
 
 def update_terrain(static_surface, terrain_grid, modified_area):
     x, y, width, height = modified_area
-    static_surface.fill((0, 0, 0, 0), modified_area)
+    explosion_radius = 60
+    destroy_terrain(terrain_grid, (x + width//2, y + height//2), explosion_radius)
 
-    start_col = max(0, x // block_size)
-    end_col = min(terrain_cols, (x + width) // block_size + 1)
-    start_row = max(0, y // block_size)
-    end_row = min(terrain_rows, (y + height) // block_size + 1)
+    margin = block_size * 4
+    clear_area = (
+        x - margin,
+        y - margin,
+        width + margin * 2,
+        height + margin * 2
+    )
+    static_surface.fill((0, 0, 0, 0), clear_area)
+
+    start_col = max(0, (x - margin) // block_size)
+    end_col = min(terrain_cols, (x + width + margin) // block_size + 1)
+    start_row = max(0, (y - margin) // block_size)
+    end_row = min(terrain_rows, (y + height + margin) // block_size + 1)
 
     for r in range(start_row, end_row):
         for c in range(start_col, end_col):
             if terrain_grid[r][c]:
-                x = c * block_size
-                y = r * block_size
-                rect = pygame.Rect(x, y, block_size, block_size)
+                draw_x = c * block_size
+                draw_y = r * block_size
+                rect = pygame.Rect(draw_x, draw_y, block_size, block_size)
                 pygame.draw.rect(static_surface, (18, 182, 83), rect)
-                pygame.draw.rect(static_surface, (10, 100, 50), rect, 2)
+
+
+def destroy_terrain(terrain_grid, impact_point, radius):
+    impact_x, impact_y = impact_point
+    destruction_radius = 3  # Liczba bloków do zniszczenia
+    
+    center_col = int(impact_x // block_size)
+    center_row = int(impact_y // block_size)
+
+    for row in range(center_row - destruction_radius, center_row + destruction_radius + 1):
+        for col in range(center_col - destruction_radius, center_col + destruction_radius + 1):
+            if 0 <= row < len(terrain_grid) and 0 <= col < len(terrain_grid[0]):
+                dx = col - center_col
+                dy = row - center_row
+                distance = (dx * dx + dy * dy) ** 0.5
+
+                if distance <= destruction_radius:
+                    terrain_grid[row][col] = 0
 
 
 main_menu()

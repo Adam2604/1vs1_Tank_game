@@ -176,8 +176,6 @@ class Tank:
                                                       turret_y + self.turret_rect.height // 2))
 
         if self.shooting:
-            if len(self.bullet_positions) > 1:
-                pygame.draw.lines(screen, (255, 255, 255), False, self.bullet_positions, 2)
             bullet_rect = self.bullet.get_rect(center=(self.bullet_x, self.bullet_y))
             screen.blit(self.bullet, bullet_rect)
 
@@ -224,16 +222,16 @@ class Tank:
             terrain_mask = pygame.mask.from_surface(terrain_surface)
             terrain_offset = (int(bullet_rect.x), int(bullet_rect.y))
             if terrain_mask.overlap(bullet_mask, terrain_offset):
-                # Obszar modyfikacji terenu po trafieniu
                 impact_area = (
-                    int(self.bullet_x - 30),
-                    int(self.bullet_y - 30),
-                    60, 60
+                    int(self.bullet_x - 60),
+                    int(self.bullet_y - 60),
+                    120,
+                    120
                 )
                 
                 if self.update_terrain_function and self.terrain_grid:
                     self.update_terrain_function(terrain_surface, self.terrain_grid, impact_area)
-            
+                
                 self.shooting = False
                 self.bullet_positions = []
                 return
