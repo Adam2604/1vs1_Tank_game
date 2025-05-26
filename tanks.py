@@ -4,6 +4,8 @@ import math
 
 class Tank:
     def __init__(self, body_type, flipped=False):
+        self.max_health = 100
+        self.health = self.max_health
         # Ścieżka do zasobów
         base_path = "czolgi/PNG/default size/"
 
@@ -39,6 +41,7 @@ class Tank:
         self.bullet_positions = []
         self.shooting = False
 
+        self.body_type = body_type
         self.body_rect = self.body.get_rect()
         self.tracks_rect = self.tracks.get_rect()
         self.turret_rect = self.turret.get_rect()
@@ -165,11 +168,14 @@ class Tank:
         tracks_y = body_y + 27
 
         if self.flipped:
-            turret_x = center_x - self.turret_rect.width - 3
+            turret_x = center_x - self.turret_rect.width - 2
         else:
             turret_x = center_x - 7
 
-        turret_y = 25 if hasattr(self, 'navy') else 18
+        if self.body_type == "Navy1":
+            turret_y = 19
+        else:
+            turret_y = 18
 
         rotated_turret = pygame.transform.rotate(self.original_turret, self.turret_angle)
         turret_rect = rotated_turret.get_rect(center=(turret_x + self.turret_rect.width // 2,
@@ -184,6 +190,7 @@ class Tank:
         new_surface.blit(self.body, (body_x, body_y))
 
         screen.blit(new_surface, (self.x, self.y))
+        self.draw_health_bar(screen)
 
     def set_position(self, x, y):
         self.x = x
@@ -236,7 +243,6 @@ class Tank:
                 self.bullet_positions = []
                 return
 
-            # Sprawdzanie kolizji z drugim czołgiem
             if other_tank:
                 tank_rect = pygame.Rect(other_tank.x, other_tank.y,
                                         other_tank.total_width, other_tank.total_height)
@@ -246,12 +252,28 @@ class Tank:
                                    int(bullet_rect.y - other_tank.y))
 
                     if other_tank.mask.overlap(bullet_mask, tank_offset):
+                        damage = 25
+                        tank_destroyed = other_tank.take_damage(damage)
                         self.shooting = False
                         self.bullet_positions = []
-                        return
+                        return tank_destroyed
 
             # Sprawdzanie czy pocisk jest poza ekranem
             if (self.bullet_x < 0 or self.bullet_x > terrain_surface.get_width() or
                     self.bullet_y > terrain_surface.get_height()):
                 self.shooting = False
                 self.bullet_positions = []
+
+    def draw_health_bar(self, screen):
+        bar_width = 60
+        bar_height = 10
+        x = self.x + (self.total_width - bar_width) // 2
+        y = self.y - 20
+        
+        pygame.draw.rect(screen, (255, 0, 0), (x, y, bar_width, bar_height))
+        health_width = (self.health / self.max_health) * bar_width
+        pygame.draw.rect(screen, (0, 255, 0), (x, y, health_width, bar_height))
+
+    def take_damage(self, damage):
+        self.health = max(0, self.health - damage)
+        return self.health <= 0  # Zwraca True jeśli czołg został zniszczony
