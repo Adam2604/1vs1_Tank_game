@@ -273,7 +273,7 @@ def map_selection():
         pygame.display.update()
 
 
-def game_loop(map_type="flat"):
+def game_loop(map_type):
     global current_player, fuel_remaining, fuel_remaining_p2
 
     terrain_grid = generate_terrain(map_type)
@@ -358,13 +358,17 @@ def game_loop(map_type="flat"):
         was_shooting = current_player == 1 and tank1.shooting or current_player == 2 and tank2.shooting
 
         if current_player == 1:
-            tank1.update_bullet(static_terrain_surface, tank2)
-            if was_shooting and not tank1.shooting:
+            tank_destroyed = tank1.update_bullet(static_terrain_surface, tank2)
+            if tank_destroyed:
+                victory_screen(1)
+            elif was_shooting and not tank1.shooting:
                 current_player = 2
                 fuel_remaining_p2 = MAX_FUEL
         else:
-            tank2.update_bullet(static_terrain_surface, tank1)
-            if was_shooting and not tank2.shooting:
+            tank_destroyed = tank2.update_bullet(static_terrain_surface, tank1)
+            if tank_destroyed:
+                victory_screen(2)
+            elif was_shooting and not tank2.shooting:
                 current_player = 1
                 fuel_remaining = MAX_FUEL
 
@@ -435,5 +439,47 @@ def destroy_terrain(terrain_grid, impact_point, radius):
                 if distance <= destruction_radius:
                     terrain_grid[row][col] = 0
 
+def victory_screen(winner):
+    victory_font = get_font(90)
+    return_font = get_font(30)
+    
+    fade_alpha = 0
+    fade_surface = pygame.Surface((screen_width, screen_height))
+    fade_surface.fill((30, 30, 30))
+    
+    start_time = pygame.time.get_ticks()
+    
+    while True:
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - start_time
+        
+        # Stopniowe przyciemnianie ekranu
+        if fade_alpha < 180:  # Maksymalna przezroczystość tła
+            fade_alpha = min(180, elapsed_time // 16)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    main_menu()
+                if event.key == pygame.K_F11:
+                    fullscreen()
+                    
+        # Przyciemnienie tła
+        fade_surface.set_alpha(fade_alpha)
+        screen.blit(fade_surface, (0, 0))
+        
+        victory_text = victory_font.render(f"Gracz {winner} wygrał!", True, "#b68f40")
+        victory_rect = victory_text.get_rect(center=(screen_width // 2, screen_height // 2))
+        screen.blit(victory_text, victory_rect)
+        
+        # Instrukcja powrotu do menu
+        return_text = return_font.render("Naciśnij ENTER aby wrócić do menu", True, "#FFFFFF")
+        return_rect = return_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+        screen.blit(return_text, return_rect)
+        
+        pygame.display.update()
 
 main_menu()
