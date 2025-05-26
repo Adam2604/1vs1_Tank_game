@@ -4,6 +4,12 @@ import math
 
 class Tank:
     def __init__(self, body_type, flipped=False):
+        self.charging = False
+        self.charge_power = 0
+        self.min_power = 5
+        self.max_power = 25
+        self.charge_speed = 0.8  # Prędkość zmiany siły strzału
+        self.charge_direction = 1
         self.max_health = 100
         self.health = self.max_health
         # Ścieżka do zasobów
@@ -191,17 +197,19 @@ class Tank:
 
         screen.blit(new_surface, (self.x, self.y))
         self.draw_health_bar(screen)
+        self.draw_power_bar(screen)  # Dodaj tę linię
 
     def set_position(self, x, y):
         self.x = x
         self.y = y
 
     def shoot(self):
-        if not self.shooting:
+        if not self.shooting and self.charging:
             self.shooting = True
-            bullet_speed = self.bullet_power  # Stała prędkość pocisku
+            self.charging = False
+            bullet_speed = self.charge_power
             angle_rad = math.radians(self.turret_angle)
-            barrel_length = 20  # Długość lufy
+            barrel_length = 20
 
             start_x = self.x + self.turret_pivot_x + math.cos(angle_rad) * barrel_length
             self.bullet_velocity_x = bullet_speed * math.cos(angle_rad)
@@ -277,3 +285,27 @@ class Tank:
     def take_damage(self, damage):
         self.health = max(0, self.health - damage)
         return self.health <= 0  # Zwraca True jeśli czołg został zniszczony
+
+    def draw_power_bar(self, screen):
+        if self.charging:
+            bar_width = 60
+            bar_height = 10
+            x = self.x + (self.total_width - bar_width) // 2
+            y = self.y - 35
+
+            pygame.draw.rect(screen, (100, 100, 100), (x, y, bar_width, bar_height))
+            power_width = ((self.charge_power - self.min_power) / (self.max_power - self.min_power)) * bar_width
+            pygame.draw.rect(screen, (255, 165, 0), (x, y, int(power_width), bar_height))
+            power_font = pygame.font.SysFont(None, 20)
+            power_text = power_font.render(f"{int(self.charge_power)}", True, (255, 255, 255))
+            text_x = x + bar_width + 5
+            text_y = y
+            screen.blit(power_text, (text_x, text_y))
+
+    def update_charge(self):
+        if self.charging:
+            self.charge_power += self.charge_speed * self.charge_direction
+            if self.charge_power >= self.max_power:
+                self.charge_direction = -1
+            elif self.charge_power <= self.min_power:
+                self.charge_direction = 1

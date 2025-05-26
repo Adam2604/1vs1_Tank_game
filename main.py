@@ -10,7 +10,6 @@ window_size = (screen_width, screen_height)
 is_fullscreen = False
 screen = pygame.display.set_mode(window_size)
 clock = pygame.time.Clock()
-font = pygame.font.SysFont(None, 60)
 
 # grafiki nieba oraz chmur zostały pobrane ze strony https://szadiart.itch.io/background-desert-mountains
 sky = pygame.transform.scale(pygame.image.load("materialy_graficzne/background1.png"), (1536, 1536))
@@ -375,13 +374,28 @@ def game_loop(map_type):
         tank1.draw(screen)
         tank2.draw(screen)
 
+        # Aktualizacja siły strzału
+        if current_player == 1:
+            tank1.update_charge()
+        else:
+            tank2.update_charge()
+
         for e in pygame.event.get():
             if e.type == pygame.MOUSEBUTTONDOWN:
-                if e.button == 1:  # Lewy przycisk myszy
+                if e.button == 1:  # Wciśnięcie lewego przycisku
+                    if current_player == 1:
+                        tank1.charging = True
+                        tank1.charge_power = tank1.min_power
+                    else:
+                        tank2.charging = True
+                        tank2.charge_power = tank2.min_power
+            elif e.type == pygame.MOUSEBUTTONUP:
+                if e.button == 1:  # Puszczenie lewego przycisku
                     if current_player == 1:
                         tank1.shoot()
                     else:
                         tank2.shoot()
+
             if e.type == pygame.QUIT:
                 pygame.quit();
                 sys.exit()
@@ -453,7 +467,7 @@ def victory_screen(winner):
         current_time = pygame.time.get_ticks()
         elapsed_time = current_time - start_time
         
-        # Stopniowe przyciemnianie ekranu
+        # Stopniowe przyciemnianie ekranu - wzięte od chata GPT
         if fade_alpha < 180:  # Maksymalna przezroczystość tła
             fade_alpha = min(180, elapsed_time // 16)
         
@@ -471,12 +485,12 @@ def victory_screen(winner):
         fade_surface.set_alpha(fade_alpha)
         screen.blit(fade_surface, (0, 0))
         
-        victory_text = victory_font.render(f"Gracz {winner} wygrał!", True, "#b68f40")
+        victory_text = victory_font.render(f"Player {winner} won!", True, "#b68f40")
         victory_rect = victory_text.get_rect(center=(screen_width // 2, screen_height // 2))
         screen.blit(victory_text, victory_rect)
         
         # Instrukcja powrotu do menu
-        return_text = return_font.render("Naciśnij ENTER aby wrócić do menu", True, "#FFFFFF")
+        return_text = return_font.render("Press ENTER to back to menu", True, "#FFFFFF")
         return_rect = return_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
         screen.blit(return_text, return_rect)
         
