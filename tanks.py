@@ -212,6 +212,7 @@ class Tank:
             self.shooting = True
             self.charging = False
             bullet_speed = self.charge_power
+            self.shot_power_percentage = (self.charge_power - self.min_power) / (self.max_power - self.min_power)
             angle_rad = math.radians(self.turret_angle)
             barrel_length = 20
 
@@ -257,14 +258,15 @@ class Tank:
 
             if other_tank:
                 tank_rect = pygame.Rect(other_tank.x, other_tank.y,
-                                        other_tank.total_width, other_tank.total_height)
+                                      other_tank.total_width, other_tank.total_height)
 
                 if bullet_rect.colliderect(tank_rect):
                     tank_offset = (int(bullet_rect.x - other_tank.x),
-                                   int(bullet_rect.y - other_tank.y))
+                                 int(bullet_rect.y - other_tank.y))
 
                     if other_tank.mask.overlap(bullet_mask, tank_offset):
-                        damage = 25
+                        base_damage = 25
+                        damage = base_damage * self.shot_power_percentage
                         tank_destroyed = other_tank.take_damage(damage)
                         self.shooting = False
                         self.bullet_positions = []
