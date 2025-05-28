@@ -15,7 +15,8 @@ class Tank:
         # Ścieżka do zasobów
         base_path = "czolgi/PNG/default size/"
 
-        # różne rodzaje czołgów
+        # różne rodzaje czołgów, na przyszłość jak zostanie dodana możliwość wyboru czołgu
+        # grafiki czołgów i związane z czołgami typu pociski, wybuchy, stworzone "by Kenney Vleugels"
         self.original_turret = pygame.image.load(f"{base_path}tanks_turret1.png").convert_alpha()
         if body_type == "Desert1":
             self.body = pygame.image.load(f"{base_path}tanks_tankDesert_body1.png").convert_alpha()
@@ -102,6 +103,9 @@ class Tank:
         self.update_terrain_function = None
         self.terrain_grid = None
 
+        if self.flipped:
+            self.turret_angle = 180
+
     def set_update_terrain_function(self, function):
         self.update_terrain_function = function
 
@@ -155,7 +159,7 @@ class Tank:
             if angle < 0:
                 angle += 360
             min_angle = 150
-            max_angle = 185
+            max_angle = 190
             angle = min(max(angle, min_angle), max_angle)
         else:
             min_angle = -5

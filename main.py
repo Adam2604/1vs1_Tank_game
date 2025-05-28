@@ -469,7 +469,7 @@ def victory_screen(winner):
         
         # Stopniowe przyciemnianie ekranu - wzięte od chata GPT
         if fade_alpha < 180:  # Maksymalna przezroczystość tła
-            fade_alpha = min(180, elapsed_time // 16)
+            fade_alpha = min(180, elapsed_time // 200)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
