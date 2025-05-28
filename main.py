@@ -275,6 +275,13 @@ def map_selection():
 def game_loop(map_type):
     global current_player, fuel_remaining, fuel_remaining_p2
 
+    tank1.reset()
+    tank2.reset()
+
+    current_player = 1
+    fuel_remaining = MAX_FUEL
+    fuel_remaining_p2 = MAX_FUEL
+
     terrain_grid = generate_terrain(map_type)
     static_terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
     draw_terrain(static_terrain_surface, terrain_grid)
@@ -397,7 +404,7 @@ def game_loop(map_type):
                         tank2.shoot()
 
             if e.type == pygame.QUIT:
-                pygame.quit();
+                pygame.quit()
                 sys.exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_F11:
@@ -468,8 +475,8 @@ def victory_screen(winner):
         elapsed_time = current_time - start_time
         
         # Stopniowe przyciemnianie ekranu - wzięte od chata GPT
-        if fade_alpha < 180:  # Maksymalna przezroczystość tła
-            fade_alpha = min(180, elapsed_time // 200)
+        if fade_alpha < 180:
+            fade_alpha = min(180, elapsed_time // 20)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -488,8 +495,6 @@ def victory_screen(winner):
         victory_text = victory_font.render(f"Player {winner} won!", True, "#b68f40")
         victory_rect = victory_text.get_rect(center=(screen_width // 2, screen_height // 2))
         screen.blit(victory_text, victory_rect)
-        
-        # Instrukcja powrotu do menu
         return_text = return_font.render("Press ENTER to back to menu", True, "#FFFFFF")
         return_rect = return_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
         screen.blit(return_text, return_rect)

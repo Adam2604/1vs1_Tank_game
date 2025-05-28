@@ -315,3 +315,16 @@ class Tank:
                 self.charge_direction = -1
             elif self.charge_power <= self.min_power:
                 self.charge_direction = 1
+
+    def reset(self): #napisane samemu
+        self.health = self.max_health
+        self.charging = False
+        self.charge_power = 0
+        self.shooting = False
+        self.bullet_positions = []
+        self.velocity_y = 0
+        self.velocity_x = 0
+        if self.flipped:
+            self.turret_angle = 180
+        else:
+            self.turret_angle = 0
