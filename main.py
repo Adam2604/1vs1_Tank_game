@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 from button import Button
 from tanks import Tank
 
@@ -182,13 +183,27 @@ def generate_terrain(map_type="flat"):
         for r in range(base_row, terrain_rows):
             for c in range(terrain_cols):
                 grid[r][c] = 1
-    else:
-        import random
+    else: # czyli mapa "hilly", więcej map na razie nie ma
+        random.seed(20)
+        base_height = terrain_rows * 3 // 4
+        current_height = base_height
+        max_height_change = 2
+        change_frequency = 0.3
+        max_deviation = 20
+        
+        heights = []
         for c in range(terrain_cols):
-            hill_top = random.randint(terrain_rows // 3, terrain_rows // 2)
-            for r in range(hill_top, terrain_rows):
-                grid[r][c] = 1
+            if random.random() < change_frequency:
+                height_change = random.randint(-max_height_change, max_height_change)
+                current_height = min(base_height + max_deviation, 
+                                   max(base_height - max_deviation, 
+                                       current_height + height_change))
+            heights.append(current_height)
 
+        for c in range(terrain_cols):
+            for r in range(heights[c], terrain_rows):
+                grid[r][c] = 1
+        random.seed()
     return grid
 
 
