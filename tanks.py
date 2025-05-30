@@ -8,10 +8,11 @@ class Tank:
         self.charge_power = 0
         self.min_power = 5
         self.max_power = 25
-        self.charge_speed = 0.8  # Prędkość zmiany siły strzału
+        self.charge_speed = 0.8
         self.charge_direction = 1
         self.max_health = 100
         self.health = self.max_health
+        self.can_shoot = True
         # Ścieżka do zasobów
         base_path = "czolgi/PNG/default size/"
 
@@ -208,9 +209,10 @@ class Tank:
         self.y = y
 
     def shoot(self):
-        if not self.shooting and self.charging:
+        if not self.shooting and self.charging and self.can_shoot:
             self.shooting = True
             self.charging = False
+            self.can_shoot = False
             bullet_speed = self.charge_power
             self.shot_power_percentage = (self.charge_power - self.min_power) / (self.max_power - self.min_power)
             angle_rad = math.radians(self.turret_angle)

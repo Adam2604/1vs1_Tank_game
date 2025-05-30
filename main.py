@@ -370,6 +370,7 @@ def game_loop(map_type):
             elif was_shooting and not tank1.shooting:
                 current_player = 2
                 fuel_remaining_p2 = MAX_FUEL
+                tank2.can_shoot = True
         else:
             tank_destroyed = tank2.update_bullet(static_terrain_surface, tank1)
             if tank_destroyed:
@@ -377,6 +378,7 @@ def game_loop(map_type):
             elif was_shooting and not tank2.shooting:
                 current_player = 1
                 fuel_remaining = MAX_FUEL
+                tank1.can_shoot = True
 
         tank1.draw(screen)
         tank2.draw(screen)
@@ -390,10 +392,10 @@ def game_loop(map_type):
         for e in pygame.event.get():
             if e.type == pygame.MOUSEBUTTONDOWN:
                 if e.button == 1:  # Wciśnięcie lewego przycisku
-                    if current_player == 1:
+                    if current_player == 1 and tank1.can_shoot:
                         tank1.charging = True
                         tank1.charge_power = tank1.min_power
-                    else:
+                    elif current_player == 2 and tank2.can_shoot:
                         tank2.charging = True
                         tank2.charge_power = tank2.min_power
             elif e.type == pygame.MOUSEBUTTONUP:
