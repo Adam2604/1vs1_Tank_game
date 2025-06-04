@@ -31,16 +31,114 @@ current_player = 1
 fuel_remaining = MAX_FUEL
 fuel_remaining_p2 = MAX_FUEL
 
+def find_height(x_pixel, terrain_grid):
+    col = x_pixel // block_size
+    col = max(0, min(col, terrain_cols - 1))
+    
+    for r in range(terrain_rows):
+        if terrain_grid[r][col]:
+            return (r * block_size) - 5
+    return screen_height
 
 def get_font(size):
     return pygame.font.Font("materialy_graficzne/font.ttf", size)
-
 
 def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, True, color)
     rect = textobj.get_rect(center=(x, y))
     surface.blit(textobj, rect)
 
+def generate_terrain(map_type="flat"):
+    grid = [[0] * terrain_cols for _ in range(terrain_rows)]
+
+    if map_type == "flat":
+        base_row = terrain_rows * 3 // 4
+        for r in range(base_row, terrain_rows):
+            for c in range(terrain_cols):
+                grid[r][c] = 1
+    else:
+        random.seed(20)
+        base_height = terrain_rows * 3 // 4
+        current_height = base_height
+        max_height_change = 2
+        change_frequency = 0.3
+        max_deviation = 20
+        
+        heights = []
+        for c in range(terrain_cols):
+            if random.random() < change_frequency:
+                height_change = random.randint(-max_height_change, max_height_change)
+                current_height = min(base_height + max_deviation, 
+                                   max(base_height - max_deviation, 
+                                       current_height + height_change))
+            heights.append(current_height)
+
+        for c in range(terrain_cols):
+            for r in range(heights[c], terrain_rows):
+                grid[r][c] = 1
+        random.seed()
+    return grid
+
+def draw_terrain(surface, terrain_grid):
+    for r, row in enumerate(terrain_grid):
+        for c, cell in enumerate(row):
+            if cell:
+                x = c * block_size
+                y = r * block_size
+                rect = pygame.Rect(x, y, block_size, block_size)
+                pygame.draw.rect(surface, (18, 182, 83), rect)
+
+    for c in range(terrain_cols):
+        for r in range(terrain_rows):
+            if terrain_grid[r][c]:
+                x = c * block_size
+                y = r * block_size
+                pygame.draw.rect(surface, (100, 200, 100), (x, y, block_size, 4))
+                break
+
+def update_terrain(static_surface, terrain_grid, modified_area):
+    x, y, width, height = modified_area
+    explosion_radius = 60
+    destroy_terrain(terrain_grid, (x + width//2, y + height//2), explosion_radius)
+
+    margin = block_size * 4
+    clear_area = (
+        x - margin,
+        y - margin,
+        width + margin * 2,
+        height + margin * 2
+    )
+    static_surface.fill((0, 0, 0, 0), clear_area)
+
+    start_col = max(0, (x - margin) // block_size)
+    end_col = min(terrain_cols, (x + width + margin) // block_size + 1)
+    start_row = max(0, (y - margin) // block_size)
+    end_row = min(terrain_rows, (y + height + margin) // block_size + 1)
+
+    for r in range(start_row, end_row):
+        for c in range(start_col, end_col):
+            if terrain_grid[r][c]:
+                draw_x = c * block_size
+                draw_y = r * block_size
+                rect = pygame.Rect(draw_x, draw_y, block_size, block_size)
+                pygame.draw.rect(static_surface, (18, 182, 83), rect)
+
+def destroy_terrain(terrain_grid, impact_point, radius):
+    impact_x, impact_y = impact_point
+    destruction_radius = 3  # Liczba bloków do zniszczenia
+    
+    center_col = int(impact_x // block_size)
+    center_row = int(impact_y // block_size)
+
+    for row in range(center_row - destruction_radius, center_row + destruction_radius + 1):
+        for col in range(center_col - destruction_radius, center_col + destruction_radius + 1):
+            if 0 <= row < len(terrain_grid) and 0 <= col < len(terrain_grid[0]):
+                dx = col - center_col
+                dy = row - center_row
+                distance = (dx * dx + dy * dy) ** 0.5
+
+                if distance <= destruction_radius:
+                    terrain_grid[row][col] = 0
 
 def fullscreen():
     global screen, is_fullscreen
@@ -49,7 +147,6 @@ def fullscreen():
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     else:
         screen = pygame.display.set_mode(window_size)
-
 
 def main_menu():
     pygame.display.set_caption("TANKS")
@@ -98,7 +195,6 @@ def main_menu():
                     sys.exit()
 
         pygame.display.update()
-
 
 def pause_menu():
     pygame.display.set_caption("TANKS - PAUSE")
@@ -164,70 +260,6 @@ def pause_menu():
 
         pygame.display.update()
 
-
-terrain_width = 1537
-terrain_height = 720
-step = 1
-scale = 100.0
-octaves = 4
-persistence = 0.1
-lacunarity = 2.0
-base = 0
-
-
-def generate_terrain(map_type="flat"):
-    grid = [[0] * terrain_cols for _ in range(terrain_rows)]
-
-    if map_type == "flat":
-        base_row = terrain_rows * 3 // 4
-        for r in range(base_row, terrain_rows):
-            for c in range(terrain_cols):
-                grid[r][c] = 1
-    else: # czyli mapa "hilly", więcej map na razie nie ma
-        random.seed(20)
-        base_height = terrain_rows * 3 // 4
-        current_height = base_height
-        max_height_change = 2
-        change_frequency = 0.3
-        max_deviation = 20
-        
-        heights = []
-        for c in range(terrain_cols):
-            if random.random() < change_frequency:
-                height_change = random.randint(-max_height_change, max_height_change)
-                current_height = min(base_height + max_deviation, 
-                                   max(base_height - max_deviation, 
-                                       current_height + height_change))
-            heights.append(current_height)
-
-        for c in range(terrain_cols):
-            for r in range(heights[c], terrain_rows):
-                grid[r][c] = 1
-        random.seed()
-    return grid
-
-
-def draw_terrain(surface, terrain_grid):
-    for r, row in enumerate(terrain_grid):
-        for c, cell in enumerate(row):
-            if cell:
-                x = c * block_size
-                y = r * block_size
-                rect = pygame.Rect(x, y, block_size, block_size)
-                pygame.draw.rect(surface, (18, 182, 83), rect)
-
-    for c in range(terrain_cols):
-        for r in range(terrain_rows):
-            if terrain_grid[r][c]:
-                x = c * block_size
-                y = r * block_size
-                pygame.draw.rect(surface, (100, 200, 100), (x, y, block_size, 4))
-                break
-
-
-terrain_points = generate_terrain()
-
-
 def map_selection():
     pygame.display.set_caption("TANKS - WYBÓR MAPY")
     while True:
@@ -286,12 +318,13 @@ def map_selection():
 
         pygame.display.update()
 
-
 def game_loop(map_type):
     global current_player, fuel_remaining, fuel_remaining_p2
 
     tank1.reset()
     tank2.reset()
+    tank1.can_shoot = True
+    tank2.can_shoot = True
 
     current_player = 1
     fuel_remaining = MAX_FUEL
@@ -301,11 +334,24 @@ def game_loop(map_type):
     static_terrain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
     draw_terrain(static_terrain_surface, terrain_grid)
 
-    tank1.set_update_terrain_function(update_terrain)
-    tank2.set_update_terrain_function(update_terrain)
-    tank1.set_terrain_grid(terrain_grid)
-    tank2.set_terrain_grid(terrain_grid)
+    # Pozycje początkowe czołgów
+    tank1_x = 100
+    tank2_x = screen_width - 200
 
+    # Znajdowanie wysokości terenu dla czołgów
+    def get_terrain_height(x):
+        col = x // block_size
+        col = max(0, min(col, terrain_cols - 1))
+        for r in range(terrain_rows):
+            if terrain_grid[r][col]:
+                return (r * block_size) - 5
+        return screen_height
+
+    tank1_y = get_terrain_height(tank1_x)
+    tank2_y = get_terrain_height(tank2_x)
+
+    tank1.set_position(tank1_x, tank1_y - tank1.total_height)
+    tank2.set_position(tank2_x, tank2_y - tank2.total_height)
     dynamic_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
 
     fuel_font = pygame.font.SysFont(None, 36)
@@ -319,8 +365,10 @@ def game_loop(map_type):
                 return r * block_size
         return screen_height
 
-    tank1.set_position(100, find_height(100) - tank1.total_height)
-    tank2.set_position(screen_width - 200, find_height(screen_width - 200) - tank2.total_height)
+    tank1.set_update_terrain_function(update_terrain)
+    tank2.set_update_terrain_function(update_terrain)
+    tank1.set_terrain_grid(terrain_grid)
+    tank2.set_terrain_grid(terrain_grid)
 
     while True:
         dynamic_surface.fill((0, 0, 0, 0))
@@ -432,51 +480,6 @@ def game_loop(map_type):
         pygame.display.update()
         clock.tick(60)
 
-def update_terrain(static_surface, terrain_grid, modified_area):
-    x, y, width, height = modified_area
-    explosion_radius = 60
-    destroy_terrain(terrain_grid, (x + width//2, y + height//2), explosion_radius)
-
-    margin = block_size * 4
-    clear_area = (
-        x - margin,
-        y - margin,
-        width + margin * 2,
-        height + margin * 2
-    )
-    static_surface.fill((0, 0, 0, 0), clear_area)
-
-    start_col = max(0, (x - margin) // block_size)
-    end_col = min(terrain_cols, (x + width + margin) // block_size + 1)
-    start_row = max(0, (y - margin) // block_size)
-    end_row = min(terrain_rows, (y + height + margin) // block_size + 1)
-
-    for r in range(start_row, end_row):
-        for c in range(start_col, end_col):
-            if terrain_grid[r][c]:
-                draw_x = c * block_size
-                draw_y = r * block_size
-                rect = pygame.Rect(draw_x, draw_y, block_size, block_size)
-                pygame.draw.rect(static_surface, (18, 182, 83), rect)
-
-
-def destroy_terrain(terrain_grid, impact_point, radius):
-    impact_x, impact_y = impact_point
-    destruction_radius = 3  # Liczba bloków do zniszczenia
-    
-    center_col = int(impact_x // block_size)
-    center_row = int(impact_y // block_size)
-
-    for row in range(center_row - destruction_radius, center_row + destruction_radius + 1):
-        for col in range(center_col - destruction_radius, center_col + destruction_radius + 1):
-            if 0 <= row < len(terrain_grid) and 0 <= col < len(terrain_grid[0]):
-                dx = col - center_col
-                dy = row - center_row
-                distance = (dx * dx + dy * dy) ** 0.5
-
-                if distance <= destruction_radius:
-                    terrain_grid[row][col] = 0
-
 def victory_screen(winner):
     victory_font = get_font(90)
     return_font = get_font(30)
@@ -518,4 +521,5 @@ def victory_screen(winner):
         
         pygame.display.update()
 
+terrain_points = generate_terrain()
 main_menu()

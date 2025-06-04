@@ -155,18 +155,17 @@ class Tank:
         dx = mouse_pos[0] - turret_center_x
         dy = mouse_pos[1] - turret_center_y
         angle = math.degrees(math.atan2(dy, dx)) * -1
-
         if self.flipped:
             if angle < 0:
                 angle += 360
             min_angle = 150
             max_angle = 190
-            angle = min(max(angle, min_angle), max_angle)
         else:
-            min_angle = -5
+            min_angle = -30
             max_angle = 30
-            angle = min(max(angle, min_angle), max_angle)
 
+        original_angle = angle
+        angle = min(max(angle, min_angle), max_angle)
         self.turret_angle = angle
 
     def draw(self, screen):
